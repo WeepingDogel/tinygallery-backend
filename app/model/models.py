@@ -24,7 +24,7 @@ class Posts(Base):
     postType = Column(String, nullable=False,
                        sqlite_on_conflict_not_null='FAIL')
     coverFileType = Column(String, nullable=False,
-                           sqlite_on_conflict_not_null='Fail')
+                           sqlite_on_conflict_not_null='FAIL')
     postTitle = Column(String, nullable=False,
                        sqlite_on_conflict_not_null='FAIL')
     description = Column(String)
