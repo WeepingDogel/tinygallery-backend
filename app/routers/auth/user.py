@@ -54,9 +54,9 @@ def AuthenticateUser(db: Session, userName: str, password: str):
 @userAuthRouter.post("/register")
 async def CreateUser(user: schemas.User, db: Session = Depends(get_db)):
     db_user = crud.GetUserByName(db, userName=user.userName)
-    if user.userName == "" or user.password == "":
+    if user.userName == "" or user.password == "" or user.email == "":
         raise HTTPException(
-            status_code=400, detail="Username and password can't be empty.")
+            status_code=400, detail="Username, password and email can't be empty.")
     if db_user:
         raise HTTPException(
             status_code=400, detail="Username has already existed!")
