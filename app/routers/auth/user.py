@@ -22,15 +22,15 @@ userAuthRouter = APIRouter(
 pwdContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verifyPassword(plain_password, hashed_password):
+def verify_password(plain_password, hashed_password):
     return pwdContext.verify(plain_password, hashed_password)
 
 
-def getPasswordHash(password):
+def get_password_hash(password):
     return pwdContext.hash(password)
 
 
-def CreateAccessToken(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -43,45 +43,49 @@ def CreateAccessToken(data: dict, expires_delta: timedelta | None = None):
         to_encode, config.SECRET_KEY, algorithm=config.ALGORITHM)
     return encoded_jwt
 
-def AuthenticateUser(db: Session, userName: str, password: str):
-    user = crud.GetUserByName(db, userName=userName)
+
+def authenticate_user(db: Session, userName: str, password: str):
+    user = crud.get_user_by_name(db, user_name=userName)
     if not user:
         return False
-    if not verifyPassword(password, user.password):
+    if not verify_password(password, user.password):
         return False
     return True
 
+
 @userAuthRouter.post("/register")
-async def CreateUser(user: schemas.User, db: Session = Depends(get_db)):
-    db_user = crud.GetUserByName(db, userName=user.userName)
-    if user.userName == "" or user.password == "" or user.email == "":
+async def create_user(user: schemas.User, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_name(db, user_name=user.user_name)
+    if user.user_name == "" or user.password == "" or user.email == "":
         raise HTTPException(
             status_code=400, detail="Username, password and email can't be empty.")
     if db_user:
         raise HTTPException(
             status_code=400, detail="Username has already existed!")
-    user.password = getPasswordHash(user.password)
-    crud.CreateUser(db=db, user=user)
+    user.password = get_password_hash(user.password)
+    crud.create_user(db=db, user=user)
     return {"status": "success"}
 
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
+
 @userAuthRouter.post("/token")
-async def userLogin(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    UserAuthentication = AuthenticateUser(db, form_data.username, form_data.password)
-    if not UserAuthentication:
+async def user_login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    user_authentication = authenticate_user(
+        db, form_data.username, form_data.password)
+    if not user_authentication:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password.",
-            headers = {"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"}
         )
-    AccessTokenExpires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
-    AccessToken = CreateAccessToken(
-        data={"sub":form_data.username},
-        expires_delta=AccessTokenExpires)
-    return {"access_token": AccessToken, "token_type":"bearer"}
+    access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": form_data.username},
+        expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @userAuthRouter.get("/test")
-async def TokenTest(token: str = Depends(oauth2Scheme)):
-    return {"status":token}
+async def token_test(token: str = Depends(oauth2Scheme)):
+    return {"status": token}
