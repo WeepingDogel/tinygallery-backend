@@ -1,7 +1,8 @@
 from typing import Union
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
+from .routers.Upload import image
 from .model import models
 from .db import engine
 
@@ -19,13 +20,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(
-    user.userAuthRouter,
-)
+app.include_router(user.userAuthRouter)
+
+app.include_router(image.UploadRouter)
 
 models.Base.metadata.create_all(bind=engine)
+
 
 @app.get("/")
 def read_root():
     return {'Data': 'Hello World! This is the backend of TinyGallery created by WeepingDogel!'}
-
