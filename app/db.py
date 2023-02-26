@@ -7,15 +7,16 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 from . import config
 
-DATABSE_URL = config.DATABSE_URL
+DATABASE_URL = config.DATABSE_URL
 
 engine = sqlalchemy.create_engine(
-    DATABSE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
 Base = declarative_base()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db():
     db = SessionLocal()
