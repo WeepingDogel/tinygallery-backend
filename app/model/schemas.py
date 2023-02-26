@@ -1,14 +1,17 @@
 # Request Body
+from fastapi import UploadFile
 from typing import Union
 from pydantic import BaseModel
 
+
 class User(BaseModel):
-    userName: str
+    user_name: str
     password: str
     email: str
 
     class Config:
         orm_mode = True
+
 
 class Token(BaseModel):
     access_token: str
@@ -23,44 +26,43 @@ class TokenData(BaseModel):
 
 
 class UserIn(BaseModel):
-    userName: str
+    user_name: str
     token: str
 
     class Config:
         orm_mode = True
 
 
-class User_Token(BaseModel):
+class UserToken(BaseModel):
     username: str
     disabled: Union[bool, None] = None
 
 
-class Post_Create(BaseModel):
-    postTitle: str
+class PostCreate(BaseModel):
+    post_title: str
     description: str
-    userName: str
 
     class Config:
         orm_mode = True
 
 
-class Remark_Create(BaseModel):
-    postUUID: str
-    userName: str
+class RemarkCreate(BaseModel):
+    post_uuid: str
+    user_name: str
     content: str
     depth: int
-    remarkUUID: str
-    replyTo: str
+    remark_uuid: str
+    reply_to: str
 
     class Config:
         orm_mode = True
 
 
 class Posts(BaseModel):
-    postTitle: str
+    post_title: str
     description: str
-    userName: str
-    postUUID: str
+    user_name: str
+    post_uuid: str
     dots: int
     date: str
 
@@ -69,12 +71,12 @@ class Posts(BaseModel):
 
 
 class Remarks(BaseModel):
-    postUUID: str
-    userName: str
+    post_uuid: str
+    user_name: str
     content: str
     depth: int
-    remarkUUID: str
-    replyTo: str
+    remark_uuid: str
+    reply_to: str
     date: str
 
     class Config:
