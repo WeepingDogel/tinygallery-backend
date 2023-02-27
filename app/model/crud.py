@@ -29,16 +29,12 @@ def get_user_by_name(db: Session, user_name: str):
 def db_create_post(user_name: str,
                    post_title: str,
                    description: str,
-                   is_nsfw: bool, ):
+                   is_nsfw: bool):
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     db_post = models.Posts(
-        user_name=user_name,
+        userName=user_name,
         postTitle=post_title,
         description=description,
         date=date,
-        nsfw=is_nsfw,
-        post_uuid=str(uuid.uuid4()),
-        share_num=0,
-        dots=0,
-
+        nsfw=is_nsfw
     )
