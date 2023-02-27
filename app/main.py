@@ -8,7 +8,6 @@ from .db import engine
 from .config import IMAGE_DIR
 import os
 
-
 app = FastAPI()
 
 origins = [
@@ -29,8 +28,12 @@ app.include_router(image.UploadRouter)
 
 models.Base.metadata.create_all(bind=engine)
 
+if not os.path.exists("static"):
+    os.mkdir("static")
+
 if not os.path.exists(IMAGE_DIR):
     os.mkdir(IMAGE_DIR)
+
 
 @app.get("/")
 def read_root():
