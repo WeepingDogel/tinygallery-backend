@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from ..auth.user import oauth2Scheme
 from ...model import crud
 from ...db import get_db
-from ... import config
 from ...utilities import token_tools as token_tool
-import os
+
 
 UploadRouter = APIRouter(
     prefix="/upload",
@@ -39,13 +38,11 @@ async def upload_image(is_nsfw: bool = Form(),
                        token: str = Depends(oauth2Scheme)):
     user_name = token_tool.get_user_name_by_token(token=token)
     if crud.get_user_by_name(db, user_name=user_name):
-        if not os.path.exists(config.IMAGE_DIR):
-            os.mkdir(config.IMAGE_DIR)
         crud.db_create_post(
             user_name=user_name,
             post_title=post_title,
             description=description,
-            is_nsfw=is_nsfw
+            is_nsfw=is_nsfw,
         )
         return {"status": "Success"}
     else:

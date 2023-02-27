@@ -29,7 +29,7 @@ class Posts(Base):
     description = Column(String)
     dots = Column(Integer)
     share_num = Column(Integer)
-    nfsw = Column(Boolean)
+    nsfw = Column(Boolean)
     user_name = Column(String, nullable=False,
                        sqlite_on_conflict_not_null='FAIL')
     date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')

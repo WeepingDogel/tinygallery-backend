@@ -8,4 +8,4 @@ DATABSE_URL = "sqlite:///./database/database.sqlite"
 
 # Image Directory
 
-IMAGE_DIR = "../posts"
+IMAGE_DIR = "static/posts"
