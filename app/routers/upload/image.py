@@ -50,8 +50,6 @@ async def upload_image(is_nsfw: bool = Form(),
     user_name: str = token_tool.get_user_name_by_token(token=token)
     # If the images that user uploaded is multiple then this variable will be True.
     is_multiple: bool = False
-    # If a user uploaded a cover then this variable will be True
-    have_cover: bool = False
     post_uuid: str = str(uuid.uuid4())
     date: str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
@@ -60,8 +58,6 @@ async def upload_image(is_nsfw: bool = Form(),
             status_code=400, detail="The user does not exist!")
     if uploaded_file.__len__() > 1:
         is_multiple = True
-    if cover:
-        have_cover = True
 
     # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
     current_post_path_obj = Path(os.path.join(config.IMAGE_DIR, post_uuid))
