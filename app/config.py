@@ -4,10 +4,10 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # DATABASE
-DATABSE_URL = "sqlite:///./database/database.sqlite"
+DATABASE_URL = "sqlite:///./database/database.sqlite"
 
 # Image Directory
 IMAGE_DIR = "./static/posts"
 
 # Allow upload suffix
-ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg")
+ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg", "gif", "webp")

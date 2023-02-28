@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
 from pathlib import Path
+from PIL import Image
 
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...model import crud
@@ -48,20 +49,19 @@ async def upload_image(is_nsfw: bool = Form(),
                        token: str = Depends(oauth2Scheme)):
     # Get the name of user from token
     user_name: str = token_tool.get_user_name_by_token(token=token)
-    # If the images that user uploaded is multiple then this variable will be True.
-    is_multiple: bool = False
+    # If the images that user uploaded is multiple then this variable will be "multiple".
+    is_multiple: str = "single"
     post_uuid: str = str(uuid.uuid4())
-    date: str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     if not crud.get_user_by_name(db, user_name=user_name):
         raise HTTPException(
             status_code=400, detail="The user does not exist!")
     if uploaded_file.__len__() > 1:
-        is_multiple = True
+        is_multiple = "multiple"
 
     # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
     current_post_path_obj = Path(os.path.join(config.IMAGE_DIR, post_uuid))
-    # If the direction already existed return error.
+    # If the direction already existed then return error.
     if current_post_path_obj.is_dir():
         raise HTTPException(
             status_code=500, detail="Cannot to create post.")
@@ -103,15 +103,35 @@ async def upload_image(is_nsfw: bool = Form(),
             content = uploaded_file[0].file.read()
             f.write(content)
 
-    if is_multiple:
-        post_type_db = "multiple"
-    else:
-        post_type_db = "single"
+    # This block for compress images.
+    compressed_images_path = current_post_path_obj.joinpath("compressed")
+    compressed_cover_path = current_post_path_obj.joinpath("compressed", "cover")
+
+    compressed_images_path.mkdir()
+    compressed_cover_path.mkdir()
+
+    original_images: list[Path] = list(current_post_path_obj.glob("*.*"))
+    original_cover_path: Path = current_post_path_obj.joinpath("cover", cover.filename)
+
+    for x in original_images:
+        current_loop_image_path: str = str(x)
+        current_loop_image_name: str = str(x.name)
+        with Image.open(current_loop_image_path) as f:
+            if current_loop_image_path.split(".")[-1] == "gif" or current_loop_image_path.split(".")[-1] == "webp":
+                f.info["duration"] = 100
+            f.save(compressed_images_path.joinpath(current_loop_image_name), optimize=True, quality=5)
+
+    with Image.open(original_cover_path) as f:
+        transform_str_path: str = str(original_cover_path)
+        cover_file_name: str = original_cover_path.name
+        if transform_str_path.split(".")[-1] == "gif" or transform_str_path.split(".")[-1] == "webp":
+            f.info["duration"] = 100
+        f.save(compressed_cover_path.joinpath(cover_file_name), optimize=True, quality=5)
 
     crud.db_create_post(
         db=db,
         user_name=user_name,
-        post_type=post_type_db,
+        post_type=is_multiple,
         post_title=post_title,
         description=description,
         post_uuid=post_uuid,

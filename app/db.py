@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 from . import config
 
-DATABASE_URL = config.DATABSE_URL
+DATABASE_URL = config.DATABASE_URL
 
 engine = sqlalchemy.create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
