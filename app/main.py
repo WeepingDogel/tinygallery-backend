@@ -1,8 +1,7 @@
-from typing import Union
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
-from .routers.Upload import image
+from .routers.upload import image
 from .model import models
 from .db import engine
 from .config import IMAGE_DIR

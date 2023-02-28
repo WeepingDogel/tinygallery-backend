@@ -26,15 +26,32 @@ def get_user_by_name(db: Session, user_name: str):
     return db.query(models.User).filter(models.User.user_name == user_name).first()
 
 
-def db_create_post(user_name: str,
+def db_create_post(db: Session,
+                   user_name: str,
+                   post_type: str,
                    post_title: str,
                    description: str,
+                   post_uuid: str,
                    is_nsfw: bool):
-    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+    date_db = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    dots_db: int = 0
+    share_num_db: int = 0
+
     db_post = models.Posts(
-        userName=user_name,
-        postTitle=post_title,
+        user_name=user_name,
+        post_title=post_title,
+        post_type=post_type,
+        post_uuid=post_uuid,
         description=description,
-        date=date,
-        nsfw=is_nsfw
+        date=date_db,
+        nsfw=is_nsfw,
+        dots=dots_db,
+        share_num=share_num_db
     )
+    db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+    return True
+
+

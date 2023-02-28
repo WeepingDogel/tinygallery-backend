@@ -7,5 +7,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 DATABSE_URL = "sqlite:///./database/database.sqlite"
 
 # Image Directory
+IMAGE_DIR = "./static/posts"
 
-IMAGE_DIR = "static/posts"
+# Allow upload suffix
+ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg")

@@ -18,20 +18,16 @@ class User(Base):
 class Posts(Base):
     __tablename__ = "POSTS"
     id = Column(Integer, primary_key=True, index=True)
-    post_file_path = Column(String, nullable=False,
-                            sqlite_on_conflict_not_null='FAIL')
-    post_type = Column(String, nullable=False,
+    user_name = Column(String, nullable=False,
                        sqlite_on_conflict_not_null='FAIL')
-    cover_file_type = Column(String, nullable=False,
-                             sqlite_on_conflict_not_null='FAIL')
     post_title = Column(String, nullable=False,
                         sqlite_on_conflict_not_null='FAIL')
+    post_type = Column(String, nullable=False,
+                       sqlite_on_conflict_not_null='FAIL')
+    nsfw = Column(Boolean)
     description = Column(String)
     dots = Column(Integer)
     share_num = Column(Integer)
-    nsfw = Column(Boolean)
-    user_name = Column(String, nullable=False,
-                       sqlite_on_conflict_not_null='FAIL')
     date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     post_uuid = Column(String, nullable=False,
                        sqlite_on_conflict_not_null='FAIL')
