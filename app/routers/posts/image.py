@@ -33,7 +33,7 @@ UploadRouter = APIRouter(
 #         return  False
 
 
-@UploadRouter.post("/posts/image")
+@UploadRouter.post("/upload/image")
 async def upload_image(is_nsfw: bool = Form(),
                        db: Session = Depends(get_db),
                        uploaded_file: list[UploadFile] = File(),
