@@ -8,6 +8,14 @@ DATABASE_URL = "sqlite:///./database/database.sqlite"
 
 # Image Directory
 IMAGE_DIR = "./static/posts"
-
 # Allow upload suffix
 ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg", "gif", "webp")
+# The size of compressed cover file.
+size = 256, 256
+# The quality of compressed cover file
+quality = 50
+# The maximum number of posts on a single page
+posts_limit = 20
+
+# Static resource server Url
+STATIC_RESOURCE_SERVER_URL = "http://localhost:8755/"

@@ -8,7 +8,7 @@ from ...model import crud
 from ...db import get_db
 from ... import config
 from ...utilities import token_tools as token_tool
-import os, uuid, time
+import os, uuid
 
 UploadRouter = APIRouter(
     prefix="/upload",
@@ -32,12 +32,6 @@ UploadRouter = APIRouter(
 #     else:
 #         return  False
 
-@UploadRouter.post("/uploadtest")
-def upload_test(files: list[UploadFile] = File()):
-    if files[0].filename.split(".")[-1] in config.ALLOW_SUFFIX:
-        return {"status": "yes"}
-    return {"suffix": files[0].filename.split(".")[-1]}
-
 
 @UploadRouter.post("/image")
 async def upload_image(is_nsfw: bool = Form(),
@@ -47,12 +41,17 @@ async def upload_image(is_nsfw: bool = Form(),
                        post_title: str = Form(),
                        description: str = Form(),
                        token: str = Depends(oauth2Scheme)):
+    # This block for declare variables.
+    # --- declare block
     # Get the name of user from token
     user_name: str = token_tool.get_user_name_by_token(token=token)
     # If the images that user uploaded is multiple then this variable will be "multiple".
     is_multiple: str = "single"
     post_uuid: str = str(uuid.uuid4())
+    # -- end declare block
 
+    # This block for verification
+    # ---verification block
     if not crud.get_user_by_name(db, user_name=user_name):
         raise HTTPException(
             status_code=400, detail="The user does not exist!")
@@ -77,7 +76,10 @@ async def upload_image(is_nsfw: bool = Form(),
         if cover.filename.split(".")[-1] not in config.ALLOW_SUFFIX:
             raise HTTPException(
                 status_code=500, detail="Not allowed file type.")
+    # --- end verification block
 
+    # This block for IO operating
+    # --- IO block
     # If the uploaded image files more than one then they will rename as loop count.
     if is_multiple:
         i: int = 0
@@ -85,48 +87,60 @@ async def upload_image(is_nsfw: bool = Form(),
             suffix: str = x.filename.split(".")[-1]
             current_loop_filename = str(i) + "." + suffix
             i = i + 1
-            with open(str(current_post_path_obj.joinpath(current_loop_filename)), "wb") as f:
-                content = x.file.read()
-                f.write(content)
+            try:
+                with open(str(current_post_path_obj.joinpath(current_loop_filename)), "wb") as f:
+                    content = x.file.read()
+                    f.write(content)
+            except IOError:
+                raise HTTPException(
+                    status_code=500, detail="Cannot save images on server.")
     else:
-        with open(str(current_post_path_obj.joinpath(uploaded_file[0].filename)), "wb") as f:
-            content = uploaded_file[0].file.read()
-            f.write(content)
-    # Save the cover image file that named "cover", if cover existed.
+        try:
+            with open(str(current_post_path_obj.joinpath(uploaded_file[0].filename)), "wb") as f:
+                content = uploaded_file[0].file.read()
+                f.write(content)
+        except IOError:
+            raise HTTPException(
+                status_code=500, detail="Cannot save images on server.")
+    # Save the cover image file in a dir that named "cover", if cover existed.
     if cover:
-        with open(str(current_post_path_obj.joinpath("cover", cover.filename)), "wb") as f:
-            content = cover.file.read()
-            f.write(content)
+        try:
+            with open(str(current_post_path_obj.joinpath("cover", cover.filename)), "wb") as f:
+                content = cover.file.read()
+                f.write(content)
+        except IOError:
+            raise HTTPException(
+                status_code=500, detail="Cannot save images on server.")
     # If user does not upload a cover, the cover will auto select from uploaded image files.
     else:
-        with open(str(current_post_path_obj.joinpath("cover", uploaded_file[0].filename)), "wb") as f:
-            content = uploaded_file[0].file.read()
-            f.write(content)
+        try:
+            with open(str(current_post_path_obj.joinpath("cover", uploaded_file[0].filename)), "wb") as f:
+                content = uploaded_file[0].file.read()
+                f.write(content)
+        except IOError:
+            raise HTTPException(
+                status_code=500, detail="Cannot save images on server.")
+    # --- end IO block
 
     # This block for compress images.
-    compressed_images_path = current_post_path_obj.joinpath("compressed")
-    compressed_cover_path = current_post_path_obj.joinpath("compressed", "cover")
-
-    compressed_images_path.mkdir()
+    # --- compress block
+    compressed_cover_path = current_post_path_obj.joinpath("compressedCover")
     compressed_cover_path.mkdir()
 
-    original_images: list[Path] = list(current_post_path_obj.glob("*.*"))
     original_cover_path: Path = current_post_path_obj.joinpath("cover", cover.filename)
 
-    for x in original_images:
-        current_loop_image_path: str = str(x)
-        current_loop_image_name: str = str(x.name)
-        with Image.open(current_loop_image_path) as f:
-            if current_loop_image_path.split(".")[-1] == "gif" or current_loop_image_path.split(".")[-1] == "webp":
+    try:
+        with Image.open(original_cover_path) as f:
+            transform_str_path: str = str(original_cover_path)
+            cover_file_name: str = original_cover_path.name
+            if transform_str_path.split(".")[-1] == "gif" or transform_str_path.split(".")[-1] == "webp":
                 f.info["duration"] = 100
-            f.save(compressed_images_path.joinpath(current_loop_image_name), optimize=True, quality=5)
-
-    with Image.open(original_cover_path) as f:
-        transform_str_path: str = str(original_cover_path)
-        cover_file_name: str = original_cover_path.name
-        if transform_str_path.split(".")[-1] == "gif" or transform_str_path.split(".")[-1] == "webp":
-            f.info["duration"] = 100
-        f.save(compressed_cover_path.joinpath(cover_file_name), optimize=True, quality=5)
+            f.thumbnail(size=config.size)
+            f.save(compressed_cover_path.joinpath(cover_file_name), optimize=True, quality=config.quality)
+    except:
+        raise HTTPException(
+            status_code=500, detail="Cannot save images on server.")
+    # --- end compress block
 
     crud.db_create_post(
         db=db,

@@ -1,9 +1,12 @@
-import time
-import uuid
+import time, uuid, json
+from typing import List
 
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 from . import models, schemas
+from .models import Posts
+from .. import config
 
 
 def create_user(db: Session, user: schemas.User):
@@ -33,7 +36,6 @@ def db_create_post(db: Session,
                    description: str,
                    post_uuid: str,
                    is_nsfw: bool):
-
     date_db = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     dots_db: int = 0
     share_num_db: int = 0
@@ -55,3 +57,9 @@ def db_create_post(db: Session,
     return True
 
 
+def get_images_by_page(db: Session, page: int) -> list[Posts]:
+    post_limit = config.posts_limit
+    page_db = (page - 1) * 20
+    return db.query(models.Posts)\
+        .order_by(desc(models.Posts.date))\
+        .limit(post_limit).offset(page_db).all()
