@@ -33,7 +33,7 @@ UploadRouter = APIRouter(
 #         return  False
 
 
-@UploadRouter.post("/upload/image")
+@UploadRouter.post("/posts/image")
 async def upload_image(is_nsfw: bool = Form(),
                        db: Session = Depends(get_db),
                        uploaded_file: list[UploadFile] = File(),
@@ -111,7 +111,7 @@ async def upload_image(is_nsfw: bool = Form(),
         except IOError:
             raise HTTPException(
                 status_code=500, detail="Cannot save images on server.")
-    # If user does not upload a cover, the cover will auto select from uploaded image files.
+    # If user does not posts a cover, the cover will auto select from uploaded image files.
     else:
         try:
             with open(str(current_post_path_obj.joinpath("cover", uploaded_file[0].filename)), "wb") as f:

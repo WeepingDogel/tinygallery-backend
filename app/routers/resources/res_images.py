@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pathlib import Path
 from sqlalchemy.orm import Session
 
 from ...db import get_db
 from ...model import crud
-from ... import config
 from ...utilities import dir_tool
 
 image_resources_api = APIRouter(

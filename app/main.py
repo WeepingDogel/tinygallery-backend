@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
-from .routers.upload import image
-from .routers.resources import get_images
+from .routers.posts import image
+from .routers.resources import res_images
 from .model import models
 from .db import engine
 from .config import IMAGE_DIR
@@ -24,7 +24,7 @@ app.add_middleware(
 
 app.include_router(user.userAuthRouter)
 app.include_router(image.UploadRouter)
-app.include_router(get_images.image_resources_api)
+app.include_router(res_images.image_resources_api)
 
 models.Base.metadata.create_all(bind=engine)
 

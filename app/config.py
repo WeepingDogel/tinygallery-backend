@@ -8,7 +8,7 @@ DATABASE_URL = "sqlite:///./database/database.sqlite"
 
 # Image Directory
 IMAGE_DIR = "./static/posts"
-# Allow upload suffix
+# Allow posts suffix
 ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg", "gif", "webp")
 # The size of compressed cover file.
 size = 256, 256
