@@ -11,8 +11,8 @@ from ...utilities import token_tools as token_tool
 import os, uuid
 
 UploadRouter = APIRouter(
-    prefix="/upload",
-    tags=['Upload'],
+    prefix="/posts",
+    tags=['Posts'],
     responses={
         404: {
             "Description": "Not Found"
@@ -33,7 +33,7 @@ UploadRouter = APIRouter(
 #         return  False
 
 
-@UploadRouter.post("/image")
+@UploadRouter.post("/upload/image")
 async def upload_image(is_nsfw: bool = Form(),
                        db: Session = Depends(get_db),
                        uploaded_file: list[UploadFile] = File(),

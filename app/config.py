@@ -18,4 +18,4 @@ quality = 50
 posts_limit = 20
 
 # Static resource server Url
-STATIC_RESOURCE_SERVER_URL = "http://localhost:8755/"
+STATIC_RESOURCE_SERVER_URL = "http://localhost:8755/static/"
