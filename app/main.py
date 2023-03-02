@@ -35,7 +35,7 @@ This project is under **development**, only
 * /posts/create,
 * /resources/image/,
 
-are available.
+interface are available.
 """
 
 app = FastAPI(openapi_tags=tags_metadata, description=document_description)

@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException, Query
 from sqlalchemy.orm import Session
+from typing import Union
+
 from ...dependencies.db import get_db
 
 Remark_router = APIRouter(
@@ -20,8 +22,9 @@ def create_remark_for_post(post_uuid_for_create_remark: str):
 
 
 @Remark_router.get("/get/inpost/{post_uuid_for_get_remark}")
-def get_remark_in_post_by_postuuid(post_uuid_for_get_remark: str):
-    pass
+def get_remark_in_post_by_postuuid(post_uuid_for_get_remark: str,
+                                   page: int):
+    return {"page": page}
 
 
 @Remark_router.put("/update/inpost/{remark_uuid_for_update_remark}")
