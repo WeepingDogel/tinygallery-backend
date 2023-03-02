@@ -30,7 +30,9 @@ def create_all_project_dir():
     post_path_obj = Path(config.POST_DIR)
     avatar_path = Path(config.AVATAR_DIR)
     database_dir = Path("./database")
+    background_dir = Path(config.BACKGROUND_DIR)
 
     post_path_obj.mkdir(parents=True, exist_ok=True)
     avatar_path.mkdir(parents=True, exist_ok=True)
     database_dir.mkdir(exist_ok=True)
+    background_dir.mkdir(exist_ok=True)

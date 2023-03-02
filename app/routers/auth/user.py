@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -82,12 +83,17 @@ async def user_login(db: Session = Depends(get_db), form_data: OAuth2PasswordReq
             detail="Incorrect username or password.",
             headers={"WWW-Authenticate": "Bearer"}
         )
-
-    access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": form_data.username},
-        expires_delta=access_token_expires)
-
+    try:
+        access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": form_data.username},
+            expires_delta=access_token_expires)
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Cannot create token.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     return {"access_token": access_token, "token_type": "bearer"}
 
 

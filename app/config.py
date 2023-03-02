@@ -6,19 +6,21 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # DATABASE
 DATABASE_URL = "sqlite:///./database/database.sqlite"
 
-# Image Directory
+# Image Directory.
 POST_DIR = "./static/posts"
-# Allow posts suffix
+# Allow posts suffix.
 ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg", "gif", "webp")
 # The size of compressed cover file.
 size = 256, 256
-# The quality of compressed cover file
+# The quality of compressed cover file.
 quality = 50
-# The maximum number of posts on a single page
+# The maximum number of posts on a single page.
 posts_limit = 20
 
-# User avatar directory
+# User avatar directory.
 AVATAR_DIR = "./static/avatars"
+# User profile background images' directory.
+BACKGROUND_DIR = "./static/backgrounds"
 
 # Static resource server Url
 STATIC_RESOURCE_SERVER_URL = "http://localhost:8755/static/"
