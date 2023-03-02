@@ -40,7 +40,7 @@ interface are available.
 app = FastAPI(openapi_tags=tags_metadata, description=document_description)
 
 origins = [
-    "http://loaclhost:5173",
+    "*"
 ]
 
 app.add_middleware(
@@ -51,14 +51,14 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+create_all_project_dir()
+
 app.include_router(user.userAuthRouter)
 app.include_router(image.Post_router)
 app.include_router(res_images.image_resources_api)
 app.include_router(remarks.Remark_router)
 
 models.Base.metadata.create_all(bind=engine)
-
-create_all_project_dir()
 
 
 @app.get("/")
