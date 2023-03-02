@@ -96,6 +96,6 @@ def update_user_data_by_user_name(user_name_for_update_data: str):
     pass
 
 
-@userAuthRouter.delete("/delete/user/{user_name_for_delete_user}")
+@userAuthRouter.delete("/delete/{user_name_for_delete_user}")
 def delete_user_by_user_name(user_name_for_delete_user: str):
     pass

@@ -60,7 +60,7 @@ async def upload_image(is_nsfw: bool = Form(),
         is_multiple = "multiple"
 
     # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
-    current_post_path_obj = Path(os.path.join(config.IMAGE_DIR, post_uuid))
+    current_post_path_obj = Path(os.path.join(config.POST_DIR, post_uuid))
     # If the direction already existed then return error.
     if current_post_path_obj.is_dir():
         raise HTTPException(

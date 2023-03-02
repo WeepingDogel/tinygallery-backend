@@ -4,7 +4,7 @@ from .. import config
 
 
 def get_files_url_as_dict(dir_uuid: str):
-    post_dir_object = Path(config.IMAGE_DIR).joinpath(dir_uuid)
+    post_dir_object = Path(config.POST_DIR).joinpath(dir_uuid)
     image_files_list_object: list[Path] = list(post_dir_object.glob("*.*"))
     original_cover_file_obj: Path = list(post_dir_object.joinpath("cover").glob("*.*"))[0]
     compressed_cover_file_obj: Path = list(post_dir_object.joinpath("compressedCover").glob("*.*"))[0]
@@ -12,9 +12,11 @@ def get_files_url_as_dict(dir_uuid: str):
     # Convert each Path object in old list to string type for new list.
     image_files_path_list: list[str] = []
     for o in image_files_list_object:
-        image_files_path_list.append(config.STATIC_RESOURCE_SERVER_URL + str(o.relative_to(config.IMAGE_DIR)))
-    original_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(original_cover_file_obj.relative_to(config.IMAGE_DIR))
-    compressed_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(compressed_cover_file_obj.relative_to(config.IMAGE_DIR))
+        image_files_path_list.append(config.STATIC_RESOURCE_SERVER_URL + str(o.relative_to(config.POST_DIR)))
+    original_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+        original_cover_file_obj.relative_to(config.POST_DIR))
+    compressed_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+        compressed_cover_file_obj.relative_to(config.POST_DIR))
 
     dict_for_return = {
         "image_files_url": image_files_path_list,
@@ -22,3 +24,13 @@ def get_files_url_as_dict(dir_uuid: str):
         "compressed_cover_url": compressed_cover_file_path
     }
     return dict_for_return
+
+
+def create_all_project_dir():
+    post_path_obj = Path(config.POST_DIR)
+    avatar_path = Path(config.AVATAR_DIR)
+    database_dir = Path("./database")
+
+    post_path_obj.mkdir(parents=True, exist_ok=True)
+    avatar_path.mkdir(parents=True, exist_ok=True)
+    database_dir.mkdir(exist_ok=True)

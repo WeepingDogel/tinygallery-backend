@@ -5,9 +5,8 @@ from .routers.posts import image
 from .routers.resources import res_images
 from .routers.remark import remarks
 from .model import models
+from .utilities.dir_tool import create_all_project_dir
 from app.dependencies.db import engine
-from .config import IMAGE_DIR
-import os
 
 tags_metadata = [
     {
@@ -59,11 +58,7 @@ app.include_router(remarks.Remark_router)
 
 models.Base.metadata.create_all(bind=engine)
 
-if not os.path.exists("static"):
-    os.mkdir("static")
-
-if not os.path.exists(IMAGE_DIR):
-    os.mkdir(IMAGE_DIR)
+create_all_project_dir()
 
 
 @app.get("/")
