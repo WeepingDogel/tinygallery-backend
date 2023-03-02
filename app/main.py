@@ -28,7 +28,17 @@ tags_metadata = [
     }
 ]
 
-app = FastAPI(openapi_tags=tags_metadata)
+document_description = """
+This project is under **development**, only 
+* /user/register,
+* /user/token,
+* /posts/create,
+* /resources/image/,
+
+are available.
+"""
+
+app = FastAPI(openapi_tags=tags_metadata, description=document_description)
 
 origins = [
     "http://loaclhost:5173",
