@@ -3,7 +3,7 @@ from pathlib import Path
 from .. import config
 
 
-def get_files_url_as_dict(dir_uuid: str):
+def get_files_url_as_dict(dir_uuid: str) -> dict:
     post_dir_object = Path(config.POST_DIR).joinpath(dir_uuid)
     image_files_list_object: list[Path] = list(post_dir_object.glob("*.*"))
     original_cover_file_obj: Path = list(post_dir_object.joinpath("cover").glob("*.*"))[0]
@@ -24,6 +24,15 @@ def get_files_url_as_dict(dir_uuid: str):
         "compressed_cover_url": compressed_cover_file_path
     }
     return dict_for_return
+
+
+def get_cover_file_url(dir_uuid: str) -> str:
+    post_dir_object = Path(config.POST_DIR).joinpath(dir_uuid)
+    compressed_cover_file_obj: Path = list(post_dir_object.joinpath("compressedCover").glob("*.*"))[0]
+    compressed_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+        compressed_cover_file_obj.relative_to(config.POST_DIR))
+
+    return compressed_cover_file_path
 
 
 def create_all_project_dir():

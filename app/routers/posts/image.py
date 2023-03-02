@@ -8,7 +8,7 @@ from ...model import crud
 from app.dependencies.db import get_db
 from ... import config
 from ...utilities import token_tools as token_tool
-import os, uuid
+import os, uuid, shutil
 
 Post_router = APIRouter(
     prefix="/posts",
@@ -58,6 +58,11 @@ async def upload_image(is_nsfw: bool = Form(),
             status_code=400, detail="The user does not exist!")
     if uploaded_file.__len__() > 1:
         is_multiple = "multiple"
+    # Return Error, if list have same file name.
+    for x in uploaded_file:
+        if x.filename in uploaded_file:
+            raise HTTPException(
+                status_code=400, detail="File name not be same!")
 
     # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
     current_post_path_obj = Path(os.path.join(config.POST_DIR, post_uuid))
@@ -111,16 +116,16 @@ async def upload_image(is_nsfw: bool = Form(),
                 f.write(content)
         except IOError:
             raise HTTPException(
-                status_code=500, detail="Cannot save images on server.")
+                status_code=500, detail="Cannot save cover on server.")
     # If user does not post a cover, the cover will auto select from uploaded image files.
     else:
         try:
-            with open(str(current_post_path_obj.joinpath("cover", uploaded_file[0].filename)), "wb") as f:
-                content = uploaded_file[0].file.read()
-                f.write(content)
+            source_file: Path = current_post_path_obj.joinpath("0." + uploaded_file[0].filename.split(".")[-1])
+            target_file: Path = current_post_path_obj.joinpath("cover", uploaded_file[0].filename)
+            shutil.copy2(source_file, target_file)
         except IOError:
             raise HTTPException(
-                status_code=500, detail="Cannot save images on server.")
+                status_code=500, detail="Cannot save cover on server.")
     # --- end IO block
 
     # This block for compress images.
@@ -128,7 +133,10 @@ async def upload_image(is_nsfw: bool = Form(),
     compressed_cover_path = current_post_path_obj.joinpath("compressedCover")
     compressed_cover_path.mkdir()
 
-    original_cover_path: Path = current_post_path_obj.joinpath("cover", cover.filename)
+    if cover:
+        original_cover_path: Path = current_post_path_obj.joinpath("cover", cover.filename)
+    else:
+        original_cover_path: Path = current_post_path_obj.joinpath("cover", uploaded_file[0].filename)
 
     try:
         with Image.open(original_cover_path) as f:
@@ -138,9 +146,9 @@ async def upload_image(is_nsfw: bool = Form(),
                 f.info["duration"] = 100
             f.thumbnail(size=config.size)
             f.save(compressed_cover_path.joinpath(cover_file_name), optimize=True, quality=config.quality)
-    except:
+    except IOError:
         raise HTTPException(
-            status_code=500, detail="Cannot save images on server.")
+            status_code=500, detail="Cannot compress cover.")
     # --- end compress block
 
     crud.db_create_post(
