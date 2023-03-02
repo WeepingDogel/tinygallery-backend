@@ -20,7 +20,7 @@ tags_metadata = [
     },
     {
         "name": "Resources",
-        "description": "The gateway of all static files."
+        "description": "The exit of all static files."
     },
     {
         "name": "Remarks",
@@ -33,7 +33,7 @@ This project is under **development**, only
 * /user/register,
 * /user/token,
 * /posts/create,
-* /resources/image/,
+* /resources/posts/,
 
 interface are available.
 """
