@@ -5,14 +5,15 @@ from PIL import Image
 
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...model import crud
-from ...db import get_db
+from app.dependencies.db import get_db
 from ... import config
 from ...utilities import token_tools as token_tool
 import os, uuid
 
-UploadRouter = APIRouter(
+Post_router = APIRouter(
     prefix="/posts",
     tags=['Posts'],
+    dependencies=[Depends(get_db)],
     responses={
         404: {
             "Description": "Not Found"
@@ -21,11 +22,11 @@ UploadRouter = APIRouter(
 )
 
 
-# @UploadRouter.post("/test")
+# @Post_router.post("/test")
 # def testToken(token: str = Depends(oauth2Scheme)) -> str:
 #     return TokenTool.GetUserNameByToken(token)
 
-# @UploadRouter.get("/test")
+# @Post_router.get("/test")
 # def testGetUserByName(db: Session = Depends(get_db)):
 #     if crud.GetUserByName(db,user_name="WeepingDogel"):
 #         return True
@@ -33,7 +34,7 @@ UploadRouter = APIRouter(
 #         return  False
 
 
-@UploadRouter.post("/upload/image")
+@Post_router.post("/create")
 async def upload_image(is_nsfw: bool = Form(),
                        db: Session = Depends(get_db),
                        uploaded_file: list[UploadFile] = File(),
@@ -155,3 +156,13 @@ async def upload_image(is_nsfw: bool = Form(),
     return {
         "status": "success"
     }
+
+
+@Post_router.delete("/remove/{post_uuid_for_remove}")
+def remove_post_by_uuid(post_uuid_for_remove: str):
+    pass
+
+
+@Post_router.put("/update/{post_uuid_for_update}")
+def update_post_by_uuid(post_uuid_for_remove: str):
+    pass

@@ -3,12 +3,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
 from .routers.posts import image
 from .routers.resources import res_images
+from .routers.remark import remarks
 from .model import models
-from .db import engine
+from app.dependencies.db import engine
 from .config import IMAGE_DIR
 import os
 
-app = FastAPI()
+tags_metadata = [
+    {
+        "name": "User",
+        "description": "Operations with users, the **login** logic is also here."
+    },
+    {
+        "name": "Posts",
+        "description": "Operations with posts."
+    },
+    {
+        "name": "Resources",
+        "description": "The gateway of all static files."
+    },
+    {
+        "name": "Remarks",
+        "description": "Operations with remarks"
+    }
+]
+
+app = FastAPI(openapi_tags=tags_metadata)
 
 origins = [
     "http://loaclhost:5173",
@@ -23,8 +43,9 @@ app.add_middleware(
 )
 
 app.include_router(user.userAuthRouter)
-app.include_router(image.UploadRouter)
+app.include_router(image.Post_router)
 app.include_router(res_images.image_resources_api)
+app.include_router(remarks.Remark_router)
 
 models.Base.metadata.create_all(bind=engine)
 

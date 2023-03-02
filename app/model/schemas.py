@@ -38,14 +38,6 @@ class UserToken(BaseModel):
     disabled: Union[bool, None] = None
 
 
-class PostCreate(BaseModel):
-    post_title: str
-    description: str
-
-    class Config:
-        orm_mode = True
-
-
 class RemarkCreate(BaseModel):
     post_uuid: str
     user_name: str
@@ -58,26 +50,3 @@ class RemarkCreate(BaseModel):
         orm_mode = True
 
 
-class Posts(BaseModel):
-    post_title: str
-    description: str
-    user_name: str
-    post_uuid: str
-    dots: int
-    date: str
-
-    class Config:
-        orm_mode = True
-
-
-class Remarks(BaseModel):
-    post_uuid: str
-    user_name: str
-    content: str
-    depth: int
-    remark_uuid: str
-    reply_to: str
-    date: str
-
-    class Config:
-        orm_mode = True

@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from starlette import status
@@ -8,13 +7,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ...model import schemas
 from ...model import crud
-from ...db import get_db
+from app.dependencies.db import get_db
 from ... import config
 from ...dependencies.oauth2scheme import oauth2Scheme
 
 userAuthRouter = APIRouter(
-    prefix="/auth",
-    tags=['Auth'],
+    prefix="/user",
+    tags=['User'],
+    dependencies=[Depends(get_db)],
     responses={
         404: {
             "Description": "Not Found"
@@ -91,6 +91,11 @@ async def user_login(db: Session = Depends(get_db), form_data: OAuth2PasswordReq
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@userAuthRouter.get("/test")
-async def token_test(token: str = Depends(oauth2Scheme)):
-    return {"status": token}
+@userAuthRouter.put("/update/userdata/{user_name_for_update_data}")
+def update_user_data_by_user_name(user_name_for_update_data: str):
+    pass
+
+
+@userAuthRouter.delete("/delete/user/{user_name_for_delete_user}")
+def delete_user_by_user_name(user_name_for_delete_user: str):
+    pass
