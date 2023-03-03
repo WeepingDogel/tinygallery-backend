@@ -1,14 +1,16 @@
+import shutil
+
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
 from pathlib import Path
-from PIL import Image
+import os, uuid
 
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...model import crud
 from app.dependencies.db import get_db
 from ... import config
 from ...utilities import token_tools as token_tool
-import os, uuid, shutil
+from ...utilities import dir_tool
 
 Post_router = APIRouter(
     prefix="/posts",
@@ -20,18 +22,6 @@ Post_router = APIRouter(
         }
     }
 )
-
-
-# @Post_router.post("/test")
-# def testToken(token: str = Depends(oauth2Scheme)) -> str:
-#     return TokenTool.GetUserNameByToken(token)
-
-# @Post_router.get("/test")
-# def testGetUserByName(db: Session = Depends(get_db)):
-#     if crud.GetUserByName(db,user_name="WeepingDogel"):
-#         return True
-#     else:
-#         return  False
 
 
 @Post_router.post("/create")
@@ -49,6 +39,8 @@ async def upload_image(is_nsfw: bool = Form(),
     # If the images that user uploaded is multiple then this variable will be "multiple".
     is_multiple: str = "single"
     post_uuid: str = str(uuid.uuid4())
+    # If User uploaded a cover then this variable will be True.
+    cover_exist: bool = False
     # -- end declare block
 
     # This block for verification
@@ -58,6 +50,8 @@ async def upload_image(is_nsfw: bool = Form(),
             status_code=400, detail="The user does not exist!")
     if uploaded_file.__len__() > 1:
         is_multiple = "multiple"
+    if cover:
+        cover_exist = True
     # Return Error, if list have same file name.
     for x in uploaded_file:
         if x.filename in uploaded_file:
@@ -65,7 +59,7 @@ async def upload_image(is_nsfw: bool = Form(),
                 status_code=400, detail="File name not be same!")
 
     # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
-    current_post_path_obj = Path(os.path.join(config.POST_DIR, post_uuid))
+    current_post_path_obj = Path(config.POST_DIR).joinpath(post_uuid)
     # If the direction already existed then return error.
     if current_post_path_obj.is_dir():
         raise HTTPException(
@@ -82,74 +76,40 @@ async def upload_image(is_nsfw: bool = Form(),
         if cover.filename.split(".")[-1] not in config.ALLOW_SUFFIX:
             raise HTTPException(
                 status_code=500, detail="Not allowed file type.")
-    # --- end verification block
-
-    # This block for IO operating
-    # --- IO block
-    # If the uploaded image files more than one then they will rename as loop count.
-    if is_multiple:
-        i: int = 0
-        for x in uploaded_file:
-            suffix: str = x.filename.split(".")[-1]
-            current_loop_filename = str(i) + "." + suffix
-            i = i + 1
-            try:
-                with open(str(current_post_path_obj.joinpath(current_loop_filename)), "wb") as f:
-                    content = x.file.read()
-                    f.write(content)
-            except IOError:
-                raise HTTPException(
-                    status_code=500, detail="Cannot save images on server.")
-    else:
-        try:
-            with open(str(current_post_path_obj.joinpath(uploaded_file[0].filename)), "wb") as f:
-                content = uploaded_file[0].file.read()
-                f.write(content)
-        except IOError:
-            raise HTTPException(
-                status_code=500, detail="Cannot save images on server.")
-    # Save the cover image file in a dir that named "cover", if cover existed.
-    if cover:
-        try:
-            with open(str(current_post_path_obj.joinpath("cover", cover.filename)), "wb") as f:
-                content = cover.file.read()
-                f.write(content)
-        except IOError:
-            raise HTTPException(
-                status_code=500, detail="Cannot save cover on server.")
-    # If user does not post a cover, the cover will auto select from uploaded image files.
-    else:
-        try:
-            source_file: Path = current_post_path_obj.joinpath("0." + uploaded_file[0].filename.split(".")[-1])
-            target_file: Path = current_post_path_obj.joinpath("cover", uploaded_file[0].filename)
-            shutil.copy2(source_file, target_file)
-        except IOError:
-            raise HTTPException(
-                status_code=500, detail="Cannot save cover on server.")
-    # --- end IO block
-
-    # This block for compress images.
-    # --- compress block
-    compressed_cover_path = current_post_path_obj.joinpath("compressedCover")
-    compressed_cover_path.mkdir()
-
-    if cover:
-        original_cover_path: Path = current_post_path_obj.joinpath("cover", cover.filename)
-    else:
-        original_cover_path: Path = current_post_path_obj.joinpath("cover", uploaded_file[0].filename)
 
     try:
-        with Image.open(original_cover_path) as f:
-            transform_str_path: str = str(original_cover_path)
-            cover_file_name: str = original_cover_path.name
-            if transform_str_path.split(".")[-1] == "gif" or transform_str_path.split(".")[-1] == "webp":
-                f.info["duration"] = 100
-            f.thumbnail(size=config.size)
-            f.save(compressed_cover_path.joinpath(cover_file_name), optimize=True, quality=config.quality)
+        dir_tool.save_post_images(
+            is_multiple=is_multiple,
+            post_uuid=post_uuid,
+            uploaded_file=uploaded_file,
+            supplementary_mode=False
+        )
+    except IOError:
+        raise HTTPException(
+            status_code=500, detail="Cannot save image on server.")
+
+    try:
+        dir_tool.save_post_cover(
+            auto_cover_name=uploaded_file[0].filename,
+            post_uuid=post_uuid,
+            cover=cover,
+            cover_exist=cover_exist,
+            supplementary_mode=False
+        )
+    except IOError:
+        raise HTTPException(
+            status_code=500, detail="Cannot save cover on server.")
+
+    try:
+        dir_tool.compress_cover(
+            post_uuid=post_uuid,
+            cover_exist=cover_exist,
+            cover_name=cover,
+            auto_cover_name=uploaded_file[0].filename
+        )
     except IOError:
         raise HTTPException(
             status_code=500, detail="Cannot compress cover.")
-    # --- end compress block
 
     crud.db_create_post(
         db=db,
@@ -166,11 +126,122 @@ async def upload_image(is_nsfw: bool = Form(),
     }
 
 
+def auth_post_owner(token_for_auth: str, post_uuid: str, db: Session) -> bool:
+    user_name_from_token = token_tool.get_user_name_by_token(token=token_for_auth)
+
+    the_post_obj = crud.get_single_post_by_uuid(db=db, post_uuid=post_uuid)
+
+    if user_name_from_token != the_post_obj.user_name:
+        return False
+
+    return True
+
+
 @Post_router.delete("/remove/{post_uuid_for_remove}")
-def remove_post_by_uuid(post_uuid_for_remove: str):
-    pass
+def remove_post_by_uuid(post_uuid_for_remove: str,
+                        db: Session = Depends(get_db),
+                        token: str = Depends(oauth2Scheme)):
+    if not auth_post_owner(db=db, token_for_auth=token, post_uuid=post_uuid_for_remove):
+        raise HTTPException(
+            status_code=500, detail="You cannot delete a post that is  not yours.")
+    # Update database
+    if crud.remove_post_by_uuid(db=db, post_uuid=post_uuid_for_remove) == 0:
+        raise HTTPException(
+            status_code=500, detail="Cannot remove post.")
+    if not dir_tool.remove_post_folder_by_uuid(post_uuid_for_remove):
+        raise HTTPException(
+            status_code=500, detail="Cannot remove post folder.")
+
+    return {"status": "success"}
 
 
 @Post_router.put("/update/{post_uuid_for_update}")
-def update_post_by_uuid(post_uuid_for_remove: str):
-    pass
+def update_post_by_uuid(post_uuid_for_update: str,
+                        supplementary_mode: bool = Form(),
+                        uploaded_file: list[UploadFile] = File(),
+                        cover: UploadFile | None = None,
+                        is_nsfw: bool = Form(),
+                        post_title: str = Form(),
+                        description: str = Form(),
+                        db: Session = Depends(get_db),
+                        token: str = Depends(oauth2Scheme)):
+    # This block for declare variables.
+    # --- declare block
+    # Get the name of user from token
+    user_name: str = token_tool.get_user_name_by_token(token=token)
+    # If the images that user uploaded is multiple then this variable will be "multiple".
+    is_multiple: str = "single"
+    # If User uploaded a cover then this variable will be True.
+    cover_exist: bool = False
+    # This variable only changed when cover_exist.
+    cover_filename: str = ""
+    # -- end declare block
+
+    # This block for verification
+    # ---verification block
+    if not crud.get_user_by_name(db, user_name=user_name):
+        raise HTTPException(
+            status_code=400, detail="The user does not exist!")
+    if not auth_post_owner(db=db, token_for_auth=token, post_uuid=post_uuid_for_update):
+        raise HTTPException(
+            status_code=400, detail="You cannot update a post that is not yours.")
+    if uploaded_file.__len__() > 1:
+        is_multiple = "multiple"
+    if supplementary_mode:
+        is_multiple = "multiple"
+    if cover:
+        cover_exist = True
+    # Return Error, if list have same file name.
+    for x in uploaded_file:
+        if x.filename in uploaded_file:
+            raise HTTPException(
+                status_code=400, detail="File name not be same!")
+
+    # Create the post direction witch named its uuid in IMAGE_DIR from config.py.
+    current_post_path_obj = Path(config.POST_DIR).joinpath(post_uuid_for_update)
+    # If the direction already existed then return error.
+    if not current_post_path_obj.is_dir():
+        raise HTTPException(
+            status_code=500, detail="The post does not exist.")
+
+    # Check image files suffix.
+    for x in uploaded_file:
+        if x.filename.split(".")[-1] not in config.ALLOW_SUFFIX:
+            raise HTTPException(
+                status_code=400, detail="Not allowed file type.")
+    if cover:
+        if cover.filename.split(".")[-1] not in config.ALLOW_SUFFIX:
+            raise HTTPException(
+                status_code=500, detail="Not allowed file type.")
+    # --- end verification block
+
+    # ---IO block
+    dir_tool.save_post_images(
+        is_multiple=is_multiple,
+        supplementary_mode=supplementary_mode,
+        post_uuid=post_uuid_for_update,
+        uploaded_file=uploaded_file
+    )
+
+    if cover_exist:
+        dir_tool.save_post_cover(
+            auto_cover_name=uploaded_file[0].filename,
+            post_uuid=post_uuid_for_update,
+            cover_exist=cover_exist,
+            cover=cover,
+            supplementary_mode=supplementary_mode
+        )
+
+        dir_tool.compress_cover(
+            post_uuid=post_uuid_for_update,
+            cover_exist=cover_exist,
+            cover_name=cover,
+            auto_cover_name=uploaded_file[0].filename
+        )
+    # -- End IO block
+
+    # Update database.
+    if not crud.update_post_by_uuid(db=db, post_uuid=post_uuid_for_update, post_type_update=is_multiple):
+        raise HTTPException(
+            status_code=500, detail="Cannot update post.")
+    return {"status": "success"}

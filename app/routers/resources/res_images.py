@@ -23,7 +23,7 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=400, detail="You must append a page number to the end of the url.")
 
-    posts_from_db = crud.get_images_by_page(db=db, page=page)
+    posts_from_db = crud.get_posts_by_page(db=db, page=page)
 
     list_for_return: list[dict] = []
     for x in posts_from_db:
@@ -33,7 +33,7 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
             "description": str(x.description),
             "share_num": int(x.share_num),
             "post_uuid": str(x.post_uuid),
-            "nsfw": int(x.nsfw),
+            "nsfw": x.nsfw,
             "user_name": str(x.user_name),
             "post_title": str(x.post_title),
             "dots": int(x.dots),
@@ -43,6 +43,31 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
         list_for_return.append(temp_dict)
 
     return list_for_return
+
+
+@image_resources_api.get("/posts/single/{post_uuid}")
+def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)):
+    post_db = crud.get_single_post_by_uuid(db=db, post_uuid=post_uuid)
+
+    if not post_db:
+        raise HTTPException(
+            status_code=500, detail="The corresponding post does not exist.")
+
+    temp_dict = {
+        "id": post_db.id,
+        "post_type": post_db.post_type,
+        "description": post_db.description,
+        "share_num": post_db.share_num,
+        "post_uuid": post_db.post_uuid,
+        "nsfw": post_db.nsfw,
+        "user_name": post_db.user_name,
+        "post_title": post_db.post_title,
+        "dots": post_db.dots,
+        "date": post_db.date,
+        "files_url": dir_tool.get_files_url_as_dict(post_db.post_uuid)
+    }
+
+    return temp_dict
 
 
 @image_resources_api.get("/avatar/{user_name_for_get_avatar}")

@@ -1,5 +1,4 @@
-import time, uuid, json
-from typing import List
+import time, uuid
 
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
@@ -57,9 +56,44 @@ def db_create_post(db: Session,
     return True
 
 
-def get_images_by_page(db: Session, page: int) -> list[Posts]:
+def get_posts_by_page(db: Session, page: int) -> list[Posts]:
     post_limit = config.posts_limit
     page_db = (page - 1) * 20
-    return db.query(models.Posts)\
-        .order_by(desc(models.Posts.date))\
+    return db.query(models.Posts) \
+        .order_by(desc(models.Posts.date)) \
         .limit(post_limit).offset(page_db).all()
+
+
+def get_single_post_by_uuid(db: Session, post_uuid: str) -> list[Posts]:
+    return db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+
+
+def remove_post_by_uuid(db: Session, post_uuid: str) -> bool:
+    status: int = db.query(models.Posts). \
+        filter(models.Posts.post_uuid == post_uuid). \
+        delete("evaluate")
+    if status == 0:
+        return False
+    db.commit()
+    return True
+
+
+def update_post_by_uuid(db: Session, post_uuid: str, post_type_update: str) -> bool:
+    current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+    status: int = db.query(models.Posts).\
+        filter(models.Posts.post_uuid == post_uuid).\
+        update(
+            {
+                "date" : current_date,
+                "post_type" : post_type_update
+            },
+            synchronize_session="evaluate"
+        )
+
+    if status == 0:
+        return False
+
+    db.commit()
+
+    return True
