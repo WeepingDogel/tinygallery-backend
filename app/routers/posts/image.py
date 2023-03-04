@@ -102,13 +102,18 @@ async def upload_image(is_nsfw: bool = Form(),
         raise HTTPException(
             status_code=500, detail="Cannot compress cover.")
 
+    if is_nsfw == "true":
+        nsfw_db: bool = True
+    else:
+        nsfw_db: bool = False
+
     crud.db_create_post(
         db=db,
         user_name=user_name,
         post_title=post_title,
         description=description,
         post_uuid=post_uuid,
-        is_nsfw=is_nsfw
+        is_nsfw=nsfw_db
     )
 
     return {
