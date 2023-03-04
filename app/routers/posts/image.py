@@ -23,7 +23,7 @@ Post_router = APIRouter(
 
 
 @Post_router.post("/create")
-async def upload_image(is_nsfw: bool = Form(),
+async def upload_image(is_nsfw: str = Form(),
                        db: Session = Depends(get_db),
                        uploaded_file: list[UploadFile] = File(),
                        cover: UploadFile | None = None,
