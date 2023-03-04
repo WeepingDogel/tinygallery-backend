@@ -150,7 +150,7 @@ def update_post_by_uuid(post_uuid_for_update: str,
                         cover: UploadFile,
                         supplementary_mode: bool = Form(),
                         uploaded_file: list[UploadFile] = File(),
-                        is_nsfw: bool = Form(),
+                        is_nsfw: str = Form(),
                         post_title: str = Form(),
                         description: str = Form(),
                         db: Session = Depends(get_db),
@@ -220,11 +220,16 @@ def update_post_by_uuid(post_uuid_for_update: str,
     )
     # -- End IO block
 
+    if is_nsfw == "true":
+        nsfw_db: bool = True
+    else:
+        nsfw_db: bool = False
+
     # Update database.
     crud.update_post_by_uuid(
         db=db,
         post_uuid=post_uuid_for_update,
-        is_nsfw=is_nsfw,
+        is_nsfw=nsfw_db,
         post_title=post_title,
         post_description=description
     )
