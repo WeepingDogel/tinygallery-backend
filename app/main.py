@@ -33,7 +33,10 @@ This project is under **development**, only
 * /user/register,
 * /user/token,
 * /posts/create,
+* /post/delete,
+* /posts/update,
 * /resources/posts/,
+* /resources/posts/single
 
 interface are available.
 """

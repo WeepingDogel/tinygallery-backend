@@ -29,7 +29,6 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
     for x in posts_from_db:
         temp_dict = {
             "id": str(x.id),
-            "post_type": str(x.post_type),
             "description": str(x.description),
             "share_num": int(x.share_num),
             "post_uuid": str(x.post_uuid),
@@ -55,7 +54,6 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
 
     temp_dict = {
         "id": post_db.id,
-        "post_type": post_db.post_type,
         "description": post_db.description,
         "share_num": post_db.share_num,
         "post_uuid": post_db.post_uuid,

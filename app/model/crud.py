@@ -30,7 +30,6 @@ def get_user_by_name(db: Session, user_name: str):
 
 def db_create_post(db: Session,
                    user_name: str,
-                   post_type: str,
                    post_title: str,
                    description: str,
                    post_uuid: str,
@@ -42,7 +41,6 @@ def db_create_post(db: Session,
     db_post = models.Posts(
         user_name=user_name,
         post_title=post_title,
-        post_type=post_type,
         post_uuid=post_uuid,
         description=description,
         date=date_db,
@@ -78,18 +76,25 @@ def remove_post_by_uuid(db: Session, post_uuid: str) -> bool:
     return True
 
 
-def update_post_by_uuid(db: Session, post_uuid: str, post_type_update: str) -> bool:
+def update_post_by_uuid(db: Session,
+                        post_uuid: str,
+                        is_nsfw: bool,
+                        post_title: str,
+                        post_description: str
+                        ) -> bool:
     current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-    status: int = db.query(models.Posts).\
-        filter(models.Posts.post_uuid == post_uuid).\
+    status: int = db.query(models.Posts). \
+        filter(models.Posts.post_uuid == post_uuid). \
         update(
-            {
-                "date" : current_date,
-                "post_type" : post_type_update
-            },
-            synchronize_session="evaluate"
-        )
+        {
+            "date": current_date,
+            "post_title": post_title,
+            "nsfw": is_nsfw,
+            "description": post_description
+        },
+        synchronize_session="evaluate"
+    )
 
     if status == 0:
         return False

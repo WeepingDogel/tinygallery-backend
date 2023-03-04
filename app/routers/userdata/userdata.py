@@ -34,7 +34,7 @@ def auth_user_by_name(db: Session, token: str) -> str:
     return user_name_from_db.users_uuid
 
 
-@userdata_router.post("/set/background")
+@userdata_router.put("/set/background")
 def create_user_profile_background(background: UploadFile,
                                    token: str = Depends(oauth2Scheme),
                                    db: Session = Depends(get_db)):
@@ -60,7 +60,7 @@ def delete_user_profile_background(token: str = Depends(oauth2Scheme),
     pass
 
 
-@userdata_router.post("/set/avatar/{user_name}")
+@userdata_router.put("/set/avatar/{user_name}")
 def create_user_avatar(user_name: str):
     pass
 

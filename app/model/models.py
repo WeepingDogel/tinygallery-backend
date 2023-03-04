@@ -22,8 +22,6 @@ class Posts(Base):
                        sqlite_on_conflict_not_null='FAIL')
     post_title = Column(String, nullable=False,
                         sqlite_on_conflict_not_null='FAIL')
-    post_type = Column(String, nullable=False,
-                       sqlite_on_conflict_not_null='FAIL')
     nsfw = Column(Boolean)
     description = Column(String)
     dots = Column(Integer)
