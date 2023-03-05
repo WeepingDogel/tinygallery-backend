@@ -23,13 +23,13 @@ Post_router = APIRouter(
 
 
 @Post_router.post("/create")
-async def upload_image(is_nsfw: str = Form(),
-                       db: Session = Depends(get_db),
-                       uploaded_file: list[UploadFile] = File(),
-                       cover: UploadFile | None = None,
-                       post_title: str = Form(),
-                       description: str = Form(),
-                       token: str = Depends(oauth2Scheme)):
+def upload_image(is_nsfw: str = Form(),
+                 db: Session = Depends(get_db),
+                 uploaded_file: list[UploadFile] = File(),
+                 cover: UploadFile | None = None,
+                 post_title: str = Form(),
+                 description: str = Form(),
+                 token: str = Depends(oauth2Scheme)):
     # This block for declare variables.
     # --- declare block
     # Get the name of user from token

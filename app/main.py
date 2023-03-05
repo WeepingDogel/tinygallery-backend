@@ -44,7 +44,7 @@ interface are available.
 app = FastAPI(openapi_tags=tags_metadata, description=document_description)
 
 origins = [
-    "*"
+    "*",
 ]
 
 app.add_middleware(

@@ -56,7 +56,7 @@ def db_create_post(db: Session,
 
 def get_posts_by_page(db: Session, page: int) -> list[Posts]:
     post_limit = config.posts_limit
-    page_db = (page - 1) * 20
+    page_db = (page - 1) * config.posts_limit
     return db.query(models.Posts) \
         .order_by(desc(models.Posts.date)) \
         .limit(post_limit).offset(page_db).all()
