@@ -28,15 +28,15 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
     list_for_return: list[dict] = []
     for x in posts_from_db:
         temp_dict = {
-            "id": str(x.id),
-            "description": str(x.description),
-            "share_num": int(x.share_num),
-            "post_uuid": str(x.post_uuid),
+            "id": x.id,
+            "description": x.description,
+            "share_num": x.share_num,
+            "post_uuid": x.post_uuid,
             "nsfw": x.nsfw,
-            "user_name": str(x.user_name),
-            "post_title": str(x.post_title),
-            "dots": int(x.dots),
-            "date": str(x.date),
+            "user_name": x.user_name,
+            "post_title": x.post_title,
+            "dots": x.dots,
+            "date": x.date,
             "cover_url": dir_tool.get_cover_file_url(x.post_uuid)
         }
         list_for_return.append(temp_dict)
@@ -66,6 +66,11 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
     }
 
     return temp_dict
+
+
+@image_resources_api.get("/posts/getAllPostsBelongToUser/{page}")
+def get_all_posts_belong_to_user(page: int, user_name: str, db: Session = Depends(get_db)):
+    return crud.get_all_posts_belong_to_user(db=db, user_name=user_name, page=page)
 
 
 @image_resources_api.get("/avatar/{user_name_for_get_avatar}")

@@ -102,3 +102,13 @@ def update_post_by_uuid(db: Session,
     db.commit()
 
     return True
+
+
+def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list[Posts]:
+    single_page_posts_limit = config.posts_limit
+    page_db = (page - 1) * config.posts_limit
+
+    return db.query(models.Posts).\
+        filter(models.Posts.user_name == user_name).\
+        order_by(desc(models.Posts.date)).\
+        limit(single_page_posts_limit).offset(page_db).all()
