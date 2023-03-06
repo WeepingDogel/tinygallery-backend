@@ -71,36 +71,33 @@ def upload_image(is_nsfw: str = Form(),
             raise HTTPException(
                 status_code=500, detail="Not allowed file type.")
 
-    try:
-        dir_tool.save_post_images(
-            post_uuid=post_uuid,
-            uploaded_file=uploaded_file,
-            supplementary_mode=False
-        )
-    except IOError:
+    save_post_status: bool = dir_tool.save_post_images(
+        post_uuid=post_uuid,
+        uploaded_file=uploaded_file,
+        supplementary_mode=False
+    )
+    if not save_post_status:
         raise HTTPException(
-            status_code=500, detail="Cannot save image on server.")
+            status_code=400, detail="Cannot save the post on server!")
 
-    try:
-        dir_tool.save_post_cover(
-            cover_name=uploaded_file[0].filename,
-            post_uuid=post_uuid,
-            cover=cover,
-            cover_exist=cover_exist,
-            update_mode=False
-        )
-    except IOError:
+    save_cover_status: bool = dir_tool.save_post_cover(
+        cover_name=uploaded_file[0].filename,
+        post_uuid=post_uuid,
+        cover=cover,
+        cover_exist=cover_exist,
+        update_mode=False
+    )
+    if not save_cover_status:
         raise HTTPException(
-            status_code=500, detail="Cannot save cover on server.")
+            status_code=400, detail="Cannot save the cover of post on server!")
 
-    try:
-        dir_tool.compress_cover(
-            post_uuid=post_uuid,
-            update_mode=False
-        )
-    except IOError:
+    compress_cover_status: bool = dir_tool.compress_cover(
+        post_uuid=post_uuid,
+        update_mode=False
+    )
+    if not compress_cover_status:
         raise HTTPException(
-            status_code=500, detail="Cannot compress cover.")
+            status_code=400, detail="Cannot compress the cover of post on server!")
 
     if is_nsfw == "true":
         nsfw_db: bool = True
@@ -205,24 +202,33 @@ def update_post_by_uuid(post_uuid_for_update: str,
     # --- end verification block
 
     # ---IO block
-    dir_tool.save_post_images(
+    save_post_status: bool = dir_tool.save_post_images(
         supplementary_mode=supplementary_mode,
         post_uuid=post_uuid_for_update,
         uploaded_file=uploaded_file
     )
+    if not save_post_status:
+        raise HTTPException(
+            status_code=400, detail="Cannot save the post on server!")
 
-    dir_tool.save_post_cover(
+    save_cover_status: bool = dir_tool.save_post_cover(
         cover_name=cover_filename,
         post_uuid=post_uuid_for_update,
         cover_exist=cover_exist,
         cover=cover,
         update_mode=True
     )
+    if not save_cover_status:
+        raise HTTPException(
+            status_code=400, detail="Cannot save the cover of post on server!")
 
-    dir_tool.compress_cover(
+    compress_cover_status: bool = dir_tool.compress_cover(
         post_uuid=post_uuid_for_update,
         update_mode=True
     )
+    if not compress_cover_status:
+        raise HTTPException(
+            status_code=400, detail="Cannot compress the cover of post on server!")
     # -- End IO block
 
     if is_nsfw == "true":
