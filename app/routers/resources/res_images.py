@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from pathlib import Path
 from app.dependencies.db import get_db
 from ...model import crud
 from ...utilities import dir_tool
+from ...utilities.userdata_tool import get_user_uuid_by_name
+from ... import config
 
 image_resources_api = APIRouter(
     prefix="/resources",
@@ -74,10 +76,29 @@ def get_all_posts_belong_to_user(page: int, user_name: str, db: Session = Depend
 
 
 @image_resources_api.get("/avatar/{user_name_for_get_avatar}")
-def get_avatar_by_user_name(user_name_for_get_avatar: str):
-    pass
+def get_avatar_by_user_name(user_name_for_get_avatar: str, db: Session = Depends(get_db)):
+    user_uuid = get_user_uuid_by_name(user_name=user_name_for_get_avatar, db=db)
+    resource_server = config.AVATARS_RESOURCE_SERVER_URL.split('/static/')[0]
+    avatar_dir = Path(config.AVATAR_DIR)
+    avatar_200px_dir = Path(avatar_dir.joinpath(user_uuid + '/200'))
+    avatar_40px_dir = Path(avatar_dir.joinpath(user_uuid + '/40'))
+    avatar_200px = resource_server + "/" + str(list(avatar_200px_dir.glob('*.*'))[0])
+    avatar_40px = resource_server + "/" + str(list(avatar_40px_dir.glob('*.*'))[0])
+    return {
+        'status': "success",
+        'avatar_200px': avatar_200px,
+        'avatar_40px': avatar_40px
+    }
 
 
 @image_resources_api.get("/profile/background/{user_name_for_get_background}")
-def get_background_by_user_name(user_name_for_get_background: str):
-    pass
+def get_background_by_user_name(user_name_for_get_background: str, db: Session = Depends(get_db)):
+    user_uuid = get_user_uuid_by_name(user_name=user_name_for_get_background, db=db)
+    resource_server = config.POSTS_RESOURCE_SERVER_URL.split('/static/')[0]
+    background_dir = Path(config.BACKGROUND_DIR)
+    background_image_dir = Path(background_dir.joinpath(user_uuid))
+    background_image = resource_server + "/" + str(list(background_image_dir.glob("*.*"))[0])
+    return {
+        'status': 'success',
+        'background': background_image
+    }
