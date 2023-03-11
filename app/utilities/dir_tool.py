@@ -134,6 +134,10 @@ def save_user_avatar(
     avatar_user_path = avatar_path.joinpath(user_uuid)
     compressed_avatar_200_path = avatar_user_path.joinpath('200')
     compressed_avatar_40_path = avatar_user_path.joinpath('40')
+    # Delete old avatar
+    if avatar_user_path.exists():
+        shutil.rmtree(str(avatar_user_path))
+
     try:
         avatar_user_path.mkdir(exist_ok=True)
         compressed_avatar_200_path.mkdir(exist_ok=True)
@@ -156,9 +160,12 @@ def save_user_avatar(
                 file_suffix=file_suffix,
                 user_uuid=user_uuid
         ):
+
             return False
+
     except IOError:
         return False
+
     return True
 
 
@@ -169,12 +176,20 @@ def compress_avatar(
         file_suffix: str,
         user_uuid: str
 ) -> bool:
-    try:
-        with Image.open(list(original_path.glob('*.*'))[0]) as f:
-            f.thumbnail(size=avatar_size)
-            f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
-    except IOError:
-        return False
+    if file_suffix == 'gif':
+        try:
+            with Image.open(list(original_path.glob('*.gif'))[0]) as f:
+                f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
+        except IOError:
+            return False
+    else:
+        try:
+            with Image.open(list(original_path.glob('*.*'))[0]) as f:
+                f.thumbnail(size=avatar_size)
+                f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
+        except IOError:
+            return False
+
     return True
 
 
