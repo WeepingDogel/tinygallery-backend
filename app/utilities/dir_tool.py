@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 from fastapi import UploadFile
 from PIL import Image
@@ -15,10 +16,10 @@ def get_files_url_as_dict(dir_uuid: str) -> dict:
     # Convert each Path object in old list to string type for new list.
     image_files_path_list: list[str] = []
     for o in image_files_list_object:
-        image_files_path_list.append(config.STATIC_RESOURCE_SERVER_URL + str(o.relative_to(config.POST_DIR)))
-    original_cover_path_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+        image_files_path_list.append(config.POSTS_RESOURCE_SERVER_URL + str(o.relative_to(config.POST_DIR)))
+    original_cover_path_path: str = config.POSTS_RESOURCE_SERVER_URL + str(
         original_cover_path_obj.relative_to(config.POST_DIR))
-    compressed_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+    compressed_cover_file_path: str = config.POSTS_RESOURCE_SERVER_URL + str(
         compressed_cover_file_obj.relative_to(config.POST_DIR))
 
     dict_for_return = {
@@ -32,7 +33,7 @@ def get_files_url_as_dict(dir_uuid: str) -> dict:
 def get_cover_file_url(dir_uuid: str) -> str:
     post_dir_object = Path(config.POST_DIR).joinpath(dir_uuid)
     compressed_cover_file_obj: Path = list(post_dir_object.joinpath("compressedCover").glob("*.*"))[0]
-    compressed_cover_file_path: str = config.STATIC_RESOURCE_SERVER_URL + str(
+    compressed_cover_file_path: str = config.POSTS_RESOURCE_SERVER_URL + str(
         compressed_cover_file_obj.relative_to(config.POST_DIR))
 
     return compressed_cover_file_path
@@ -142,7 +143,8 @@ def save_user_avatar(
         avatar_user_path.mkdir(exist_ok=True)
         compressed_avatar_200_path.mkdir(exist_ok=True)
         compressed_avatar_40_path.mkdir(exist_ok=True)
-        with open(str(avatar_user_path.joinpath(user_uuid + "." + file_suffix)), 'wb') as f:
+        with open(str(avatar_user_path.joinpath(user_uuid + str(random.randint(0, 9999)) + "." + file_suffix)),
+                  'wb') as f:
             # Save original avatar
             content = avatar.file.read()
             f.write(content)
@@ -160,7 +162,6 @@ def save_user_avatar(
                 file_suffix=file_suffix,
                 user_uuid=user_uuid
         ):
-
             return False
 
     except IOError:
@@ -179,14 +180,16 @@ def compress_avatar(
     if file_suffix == 'gif':
         try:
             with Image.open(list(original_path.glob('*.gif'))[0]) as f:
-                f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
+                f.save(compressed_path.joinpath(user_uuid + str(random.randint(0, 9999)) + '.' + file_suffix),
+                       optimize=True, quality=config.quality)
         except IOError:
             return False
     else:
         try:
             with Image.open(list(original_path.glob('*.*'))[0]) as f:
                 f.thumbnail(size=avatar_size)
-                f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
+                f.save(compressed_path.joinpath(user_uuid + str(random.randint(0, 9999)) + '.' + file_suffix),
+                       optimize=True, quality=config.quality)
         except IOError:
             return False
 
