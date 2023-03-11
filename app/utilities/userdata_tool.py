@@ -16,3 +16,13 @@ def auth_user_by_name(db: Session, token: str) -> str:
             status_code=400, detail="The user does not exist!")
 
     return user_name_from_db.users_uuid
+
+
+def get_user_uuid_by_name(db: Session, user_name: str):
+    user_uuid_from_db = crud.get_user_by_name(db, user_name=user_name)
+    if not user_uuid_from_db:
+        raise HTTPException(
+            status_code=400,
+            detail="The user does not exist!"
+        )
+    return user_uuid_from_db.users_uuid
