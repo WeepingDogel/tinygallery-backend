@@ -11,6 +11,7 @@ from ...model import crud
 from app.dependencies.db import get_db
 from ... import config
 from ...dependencies.oauth2scheme import oauth2Scheme
+from ...utilities.token_tools import get_user_name_by_token
 
 userAuthRouter = APIRouter(
     prefix="/user",
@@ -98,7 +99,10 @@ async def user_login(db: Session = Depends(get_db), form_data: OAuth2PasswordReq
 
 
 @userAuthRouter.put("/update/userdata/{user_name_for_update_data}")
-def update_user_data_by_user_name(user_name_for_update_data: str):
+def update_user_data_by_user_name(user_name_for_update_data: str,
+                                  db: Session = Depends(get_db),
+                                  token: str = Depends(oauth2Scheme)):
+    original_user_name = get_user_name_by_token(token)
     pass
 
 
