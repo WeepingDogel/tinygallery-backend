@@ -12,7 +12,12 @@ CredentialsException = HTTPException(
 
 
 # Decode and get username
+# Query the database to check if the username exists
 def get_user_name_by_token(token: str):
+    """
+    :param token:
+    :return a username:
+    """
     try:
         data_decoder = jwt.decode(token=token, key=config.SECRET_KEY, algorithms=config.ALGORITHM)
         user_name: str = data_decoder.get("sub")
@@ -21,5 +26,3 @@ def get_user_name_by_token(token: str):
         return user_name
     except JWTError:
         return False
-
-# Query the database to check if the username exists
