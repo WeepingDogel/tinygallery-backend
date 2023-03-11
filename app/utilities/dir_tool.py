@@ -125,6 +125,73 @@ def save_post_cover(
     return True
 
 
+def save_user_avatar(
+        user_uuid: str,
+        avatar: UploadFile,
+        file_suffix: str,
+        avatar_path: Path,
+) -> bool:
+    avatar_user_path = avatar_path.joinpath(user_uuid)
+    compressed_avatar_200_path = avatar_user_path.joinpath('200')
+    compressed_avatar_40_path = avatar_user_path.joinpath('40')
+    try:
+        avatar_user_path.mkdir(exist_ok=True)
+        compressed_avatar_200_path.mkdir(exist_ok=True)
+        compressed_avatar_40_path.mkdir(exist_ok=True)
+        with open(str(avatar_user_path.joinpath(user_uuid + "." + file_suffix)), 'wb') as f:
+            # Save original avatar
+            content = avatar.file.read()
+            f.write(content)
+        if not compress_avatar_200(
+                original_path=avatar_user_path,
+                compressed_path=compressed_avatar_200_path,
+                file_suffix=file_suffix,
+                user_uuid=user_uuid):
+            return False
+        if not compress_avatar_40(
+                original_path=avatar_user_path,
+                compressed_path=compressed_avatar_40_path,
+                file_suffix=file_suffix,
+                user_uuid=user_uuid
+        ):
+            return False
+    except IOError:
+        return False
+    return True
+
+
+def compress_avatar_200(
+        original_path: Path,
+        compressed_path: Path,
+        file_suffix: str,
+        user_uuid: str
+) -> bool:
+    avatar_size = 200, 200
+    try:
+        with Image.open(list(original_path.glob('*.*'))[0]) as f:
+            f.thumbnail(size=avatar_size)
+            f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optimize=True, quality=config.quality)
+    except IOError:
+        return False
+    return True
+
+
+def compress_avatar_40(
+        original_path: Path,
+        compressed_path: Path,
+        file_suffix: str,
+        user_uuid: str
+) -> bool:
+    avatar_size = 40, 40
+    try:
+        with Image.open(list(original_path.glob('*.*'))[0]) as f:
+            f.thumbnail(size=avatar_size)
+            f.save(compressed_path.joinpath(user_uuid + '.' + file_suffix), optmize=True, quality=config.quality)
+    except IOError:
+        return False
+    return True
+
+
 def compress_cover(
         post_uuid: str,
         update_mode: bool
