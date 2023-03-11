@@ -1,3 +1,5 @@
+import random
+import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from pathlib import Path
@@ -30,18 +32,20 @@ def get_user_name(token: str = Depends(oauth2Scheme)):
 def create_user_profile_background(background: UploadFile,
                                    token: str = Depends(oauth2Scheme),
                                    db: Session = Depends(get_db)):
-    background_path: Path = Path(config.BACKGROUND_DIR)
     file_suffix: str = background.filename.split(".")[-1]
-
     user_uuid = auth_user_by_name(db=db, token=token)
-
+    background_path: Path = Path(config.BACKGROUND_DIR + "/" + user_uuid)
+    if background_path.exists():
+        shutil.rmtree(background_path)
+    background_path.mkdir(exist_ok=True)
     try:
-        with open(str(background_path.joinpath(user_uuid + "." + file_suffix)), "wb") as f:
+        with open(str(background_path.joinpath(user_uuid + str(random.randint(0, 9999)) + "." + file_suffix)), "wb") as f:
             content = background.file.read()
             f.write(content)
     except IOError:
-        raise HTTPException(
-            status_code=500, detail="Cannot save file on server.")
+        print(IOError)
+        # raise HTTPException(
+        #     status_code=500, detail="Cannot save file on server.")
 
     return {"status": "success"}
 
