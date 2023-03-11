@@ -19,6 +19,9 @@ posts_limit = 20
 
 # User avatar directory.
 AVATAR_DIR = "./static/avatars"
+# Avatar size
+AVATAR_SIZE_PROFILE = 200, 200
+AVATAR_SIZE_HOME = 40, 40
 # User profile background images' directory.
 BACKGROUND_DIR = "./static/backgrounds"
 
