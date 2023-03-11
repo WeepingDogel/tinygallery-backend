@@ -1,7 +1,8 @@
-import time, uuid
+import time
+import uuid
 
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .models import Posts
@@ -26,6 +27,10 @@ def create_user(db: Session, user: schemas.User):
 
 def get_user_by_name(db: Session, user_name: str):
     return db.query(models.User).filter(models.User.user_name == user_name).first()
+
+
+def update_user_name(db: Session, new_user_name: str):
+    pass
 
 
 def db_create_post(db: Session,
