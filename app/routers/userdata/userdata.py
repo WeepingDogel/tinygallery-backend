@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from pathlib import Path
-
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...dependencies.db import get_db
-from ...utilities import token_tools as token_tool
 from ... import config
-from ...model import crud
+from ...utilities.userdata_tool import auth_user_by_name
+from ...utilities.token_tools import get_user_name_by_token
+from ...utilities.dir_tool import save_user_avatar
 
 userdata_router = APIRouter(
     prefix="/userdata",
@@ -20,18 +20,10 @@ userdata_router = APIRouter(
 )
 
 
-def auth_user_by_name(db: Session, token: str) -> str:
-    user_name_from_token: str = token_tool.get_user_name_by_token(token=token)
-    if not user_name_from_token:
-        raise HTTPException(
-            status_code=400, detail="The user does not exist!")
-
-    user_name_from_db = crud.get_user_by_name(db, user_name=user_name_from_token)
-    if not user_name_from_db:
-        raise HTTPException(
-            status_code=400, detail="The user does not exist!")
-
-    return user_name_from_db.users_uuid
+@userdata_router.put("/get/username")
+def get_user_name(token: str = Depends(oauth2Scheme)):
+    user_name = get_user_name_by_token(token=token)
+    return {'username': user_name}
 
 
 @userdata_router.put("/set/background")
@@ -60,9 +52,30 @@ def delete_user_profile_background(token: str = Depends(oauth2Scheme),
     pass
 
 
-@userdata_router.put("/set/avatar/{user_name}")
-def create_user_avatar(user_name: str):
-    pass
+@userdata_router.put("/set/avatar")
+def create_user_avatar(avatar: UploadFile,
+                       db: Session = Depends(get_db),
+                       token: str = Depends(oauth2Scheme)):
+    avatar_path: Path = Path(config.AVATAR_DIR)
+    user_uuid = auth_user_by_name(db=db, token=token)
+    file_suffix = avatar.filename.split(".")[-1]
+    if not save_user_avatar(avatar=avatar, user_uuid=user_uuid, file_suffix=file_suffix, avatar_path=avatar_path):
+        raise HTTPException(
+            status_code=500,
+            detail="Cannot save file one server."
+        )
+    else:
+        return {"status": "success"}
+    # try:
+    #     with open(str(avatar_path.joinpath(user_uuid + "." + file_suffix)), "wb") as f:
+    #         content = avatar.file.read()
+    #         f.write(content)
+    #
+    # except IOError:
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail="Cannot save file on server."
+    #     )
 
 
 @userdata_router.delete("/delete/avatar/{user_name}")
