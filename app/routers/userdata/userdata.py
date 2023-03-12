@@ -39,7 +39,8 @@ def create_user_profile_background(background: UploadFile,
         shutil.rmtree(background_path)
     background_path.mkdir(exist_ok=True)
     try:
-        with open(str(background_path.joinpath(user_uuid + str(random.randint(0, 9999)) + "." + file_suffix)), "wb") as f:
+        with open(str(background_path.joinpath(user_uuid + str(random.randint(0, 9999)) + "." + file_suffix)), "wb") \
+                as f:
             content = background.file.read()
             f.write(content)
     except IOError:
