@@ -39,7 +39,8 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
             "post_title": x.post_title,
             "dots": x.dots,
             "date": x.date,
-            "cover_url": dir_tool.get_cover_file_url(x.post_uuid)
+            "cover_url": dir_tool.get_cover_file_url(x.post_uuid),
+            "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=get_user_uuid_by_name(user_name=x.user_name, db=db))[1]
         }
         list_for_return.append(temp_dict)
 
