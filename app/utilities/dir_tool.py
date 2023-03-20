@@ -39,6 +39,17 @@ def get_cover_file_url(dir_uuid: str) -> str:
     return compressed_cover_file_path
 
 
+def get_avatar_file_url(dir_user_uuid: str) -> list:
+    avatar_dir_object = Path(config.AVATAR_DIR).joinpath(dir_user_uuid)
+    avatar_200px_url = config.AVATARS_RESOURCE_SERVER_URL.split('static/')[0] + str(
+        list(avatar_dir_object.joinpath("200").glob("*.*"))[0])
+    avatar_40px_url = config.AVATARS_RESOURCE_SERVER_URL.split('static/')[0] + str(
+        list(avatar_dir_object.joinpath("40").glob("*.*"))[0])
+    avatar_origin_url = config.AVATARS_RESOURCE_SERVER_URL.split('static/')[0] + str(
+        list(avatar_dir_object.glob("*.*"))[0])
+    return [avatar_200px_url, avatar_40px_url, avatar_origin_url]
+
+
 def remove_post_folder_by_uuid(dir_uuid: str) -> bool:
     post_dir = Path(config.POST_DIR).joinpath(dir_uuid)
     try:
