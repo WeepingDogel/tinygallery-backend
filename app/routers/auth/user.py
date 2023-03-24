@@ -5,7 +5,8 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm
-
+from ...utilities.image_tools import generate_default_avatar
+from ...utilities.userdata_tool import get_user_uuid_by_name
 from ...model import schemas
 from ...model import crud
 from app.dependencies.db import get_db
@@ -58,18 +59,21 @@ def authenticate_user(db: Session, userName: str, password: str):
 
 
 @userAuthRouter.post("/register")
+# User Registration
 def create_user(user: schemas.User, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_name(db, user_name=user.user_name)
-
+    # Information check
     if user.user_name == "" or user.password == "" or user.email == "":
         raise HTTPException(
             status_code=400, detail="Username, password and email can't be empty.")
     if db_user:
         raise HTTPException(
             status_code=400, detail="Username has already existed!")
-
+    # Password encrypt
     user.password = get_password_hash(user.password)
     crud.create_user(db=db, user=user)
+    # Give out the default avatar.
+    generate_default_avatar(user_uuid=get_user_uuid_by_name(user_name=user.user_name, db=db))
     return {"status": "success"}
 
 
