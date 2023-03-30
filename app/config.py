@@ -3,12 +3,11 @@ import secrets
 
 # Authentication
 secret_file = Path(".").joinpath("secret.txt")
-secret_for_file = secrets.token_hex(32)
-with open(secret_file, "w+") as c:
+with open(secret_file, "r") as c:
     secret_key_from_file = c.read()
     if secret_key_from_file == "":
-        c.write(secret_for_file)
-        SECRET_KEY = c.read()
+        print("Secret error")
+        exit()
     else:
         SECRET_KEY = secret_key_from_file
 ALGORITHM = "HS256"
