@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-
+from ..utilities import userdata_tool
 from . import models, schemas
 from .models import Posts
 from .. import config
@@ -113,7 +113,28 @@ def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list
     single_page_posts_limit = config.posts_limit
     page_db = (page - 1) * config.posts_limit
 
-    return db.query(models.Posts).\
-        filter(models.Posts.user_name == user_name).\
-        order_by(desc(models.Posts.date)).\
+    return db.query(models.Posts). \
+        filter(models.Posts.user_name == user_name). \
+        order_by(desc(models.Posts.date)). \
         limit(single_page_posts_limit).offset(page_db).all()
+
+
+def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: str):
+    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    remark_uuid = str(uuid.uuid4())
+    user_uuid = userdata_tool.get_user_uuid_by_name(db=db,user_name=user_name)
+    db_remark = models.Remarks(
+        post_uuid=remark_create.post_uuid,
+        user_uuid=user_uuid,
+        user_name=user_name,
+        remark_uuid=remark_uuid,
+        content=remark_create.content,
+        reply_to_user=remark_create.reply_to_user,
+        reply_to_remark_uuid=remark_create.reply_to_remark_uuid,
+        reply_to_sub_remark_uuid=remark_create.reply_to_sub_remark_uuid,
+        date=date
+    )
+    db.add(db_remark)
+    db.commit()
+    db.refresh(db_remark)
+    return True
