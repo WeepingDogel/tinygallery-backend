@@ -1,6 +1,7 @@
-# TinyGallery
+# TinyGallery Backend (FastAPI)
 
-The Backend.
+## Introduction
+The Backend of TinyGallery Vue Edition, powered by FastAPI.
 
 
 # Running for test
