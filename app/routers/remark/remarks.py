@@ -37,9 +37,11 @@ def create_remark_for_post(remark_create: schemas.RemarkCreate,
 
 
 @Remark_router.get("/get/inpost/{post_uuid_for_get_remark}")
-def get_remark_in_post_by_postuuid(post_uuid_for_get_remark: str,
-                                   page: int):
-    return {"page": page}
+def get_remark_in_post_by_postuuid(page: int,
+                                   post_uuid_for_get_remark: str,
+                                   db: Session = Depends(get_db)):
+
+    return crud.get_remarks_by_post_uuid(post_uuid=post_uuid_for_get_remark, page=page, db=db)
 
 
 @Remark_router.put("/update/inpost/{remark_uuid_for_update_remark}")

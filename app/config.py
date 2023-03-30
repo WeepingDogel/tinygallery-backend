@@ -16,6 +16,8 @@ size = 256, 256
 quality = 50
 # The maximum number of posts on a single page.
 posts_limit = 20
+# The maximum number of remarks on a single post.
+remark_limit = 10
 
 # User avatar directory.
 AVATAR_DIR = "./static/avatars"

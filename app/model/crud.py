@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from ..utilities import userdata_tool
 from . import models, schemas
-from .models import Posts
+from .models import Posts, Remarks
 from .. import config
 
 
@@ -122,7 +122,7 @@ def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list
 def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: str):
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     remark_uuid = str(uuid.uuid4())
-    user_uuid = userdata_tool.get_user_uuid_by_name(db=db,user_name=user_name)
+    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
     db_remark = models.Remarks(
         post_uuid=remark_create.post_uuid,
         user_uuid=user_uuid,
@@ -138,3 +138,11 @@ def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: s
     db.commit()
     db.refresh(db_remark)
     return True
+
+
+def get_remarks_by_post_uuid(db: Session, post_uuid, page: int) -> list[Remarks]:
+    remark_limit = config.remark_limit
+    remark_db = (page - 1) * config.remark_limit
+    return db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid)\
+        .order_by(desc(models.Remarks.date)) \
+        .limit(remark_limit).offset(remark_db).all()
