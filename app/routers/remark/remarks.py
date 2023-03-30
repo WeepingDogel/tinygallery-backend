@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Union
-
+from ...model import schemas
 from ...dependencies.db import get_db
+from ...dependencies.oauth2scheme import oauth2Scheme
+from ...model import crud
+from ...utilities import token_tools
 
 Remark_router = APIRouter(
     prefix="/remark",
@@ -16,9 +19,21 @@ Remark_router = APIRouter(
 )
 
 
-@Remark_router.post("/create/inpost/{post_uuid_for_create_remark}")
-def create_remark_for_post(post_uuid_for_create_remark: str):
-    pass
+@Remark_router.post("/create/inpost")
+def create_remark_for_post(remark_create: schemas.RemarkCreate,
+                           db: Session = Depends(get_db),
+                           token: str = Depends(oauth2Scheme)):
+    user_name = token_tools.get_user_name_by_token(token=token)
+    if not crud.get_user_by_name(user_name=user_name, db=db):
+        raise HTTPException(
+            status_code=400,
+            detail='User does not exist!'
+        )
+    crud.create_remark(db=db, remark_create=remark_create, user_name=user_name)
+
+    return {
+        "status": "success"
+    }
 
 
 @Remark_router.get("/get/inpost/{post_uuid_for_get_remark}")
