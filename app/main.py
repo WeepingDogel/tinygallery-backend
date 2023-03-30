@@ -7,7 +7,6 @@ from .routers.remark import remarks
 from .routers.userdata import userdata
 from .model import models
 from .utilities.dir_tool import create_all_project_dir
-from .utilities.secret_builder import create_secret
 from app.dependencies.db import engine
 
 tags_metadata = [
@@ -66,8 +65,6 @@ app.include_router(userdata.userdata_router)
 
 models.Base.metadata.create_all(bind=engine)
 
-# Create secret key in first running.
-create_secret()
 
 @app.get("/")
 def read_root():

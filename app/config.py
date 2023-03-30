@@ -1,8 +1,16 @@
 from pathlib import Path
+import secrets
 
 # Authentication
-with open(Path(".").joinpath("secret.txt")) as c:
-    SECRET_KEY = c.read()
+secret_file = Path(".").joinpath("secret.txt")
+secret_for_file = secrets.token_hex(32)
+with open(secret_file, "w+") as c:
+    secret_key_from_file = c.read()
+    if secret_key_from_file == "":
+        c.write(secret_for_file)
+        SECRET_KEY = c.read()
+    else:
+        SECRET_KEY = secret_key_from_file
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
