@@ -34,12 +34,22 @@ class Posts(Base):
 class Remarks(Base):
     __tablename__ = "REMARKS"
     id = Column(Integer, primary_key=True, index=True)
-    reply_to_sub_remark_uuid = Column(String)
-    reply_to_remark_uuid = Column(String)
-    reply_to_user = Column(String)
     remark_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL', unique=True)
     post_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     user_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     user_name = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     content = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+
+
+class Replies(Base):
+    __tablename__ = "REPLIES"
+    id = Column(Integer, primary_key=True, index=True)
+    reply_to_remark_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    reply_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL', unique=True)
+    reply_to_user_name = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    reply_to_user_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    content = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    user_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    user_name = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
