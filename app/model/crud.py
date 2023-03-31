@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from ..utilities import userdata_tool
 from . import models, schemas
-from .models import Posts, Remarks
+from .models import Posts, Remarks, Replies
 from .. import config
 
 
@@ -129,9 +129,6 @@ def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: s
         user_name=user_name,
         remark_uuid=remark_uuid,
         content=remark_create.content,
-        reply_to_user=remark_create.reply_to_user,
-        reply_to_remark_uuid=remark_create.reply_to_remark_uuid,
-        reply_to_sub_remark_uuid=remark_create.reply_to_sub_remark_uuid,
         date=date
     )
     db.add(db_remark)
@@ -140,9 +137,39 @@ def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: s
     return True
 
 
+def create_reply(db: Session, reply_create: schemas.ReplyCreate, user_name: str):
+    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    reply_uuid = str(uuid.uuid4())
+    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
+    reply_to_user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=reply_create.reply_to_user_name)
+    db_reply = models.Replies(
+        reply_to_remark_uuid=reply_create.reply_to_remark_uuid,
+        reply_uuid=reply_uuid,
+        reply_to_user_name=reply_create.reply_to_user_name,
+        reply_to_user_uuid=reply_to_user_uuid,
+        content=reply_create.content,
+        user_uuid=user_uuid,
+        user_name=user_name,
+        date=date
+    )
+    db.add(db_reply)
+    db.commit()
+    db.refresh(db_reply)
+    return True
+
+
 def get_remarks_by_post_uuid(db: Session, post_uuid, page: int) -> list[Remarks]:
     remark_limit = config.remark_limit
     remark_db = (page - 1) * config.remark_limit
-    return db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid)\
+    return db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid) \
         .order_by(desc(models.Remarks.date)) \
         .limit(remark_limit).offset(remark_db).all()
+
+
+def get_replies_by_remark_uuid(db: Session, remark_uuid, page: int) -> list[Replies]:
+    reply_limit = config.reply_limit
+    remark_db = (page - 1) * config.reply_limit
+    return db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid) \
+        .order_by(desc(models.Replies.date)) \
+        .limit(reply_limit).offset(remark_db).all()
+
