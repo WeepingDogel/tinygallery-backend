@@ -44,3 +44,6 @@ BACKGROUND_RESOURCE_SERVER = "http://localhost:8755/static/backgrounds"
 
 # The maximum number of remarks on a single post.
 remark_limit = 10
+
+# The maximum number of replies on a single remark.
+reply_limit = 5
