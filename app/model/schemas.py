@@ -41,9 +41,15 @@ class UserToken(BaseModel):
 class RemarkCreate(BaseModel):
     post_uuid: str
     content: str
+
+    class Config:
+        orm_mode = True
+
+
+class ReplyCreate(BaseModel):
     reply_to_remark_uuid: str
-    reply_to_user: str
-    reply_to_sub_remark_uuid: str
+    reply_to_user_name: str
+    content: str
 
     class Config:
         orm_mode = True
