@@ -6,6 +6,7 @@ from ...dependencies.db import get_db
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...model import crud
 from ...utilities import token_tools
+from ...utilities import dir_tool
 
 Remark_router = APIRouter(
     prefix="/remark",
@@ -36,12 +37,68 @@ def create_remark_for_post(remark_create: schemas.RemarkCreate,
     }
 
 
-@Remark_router.get("/get/inpost/{post_uuid_for_get_remark}")
+@Remark_router.post("/create/reply")
+def create_reply_for_remark(reply_create: schemas.ReplyCreate,
+                            db: Session = Depends(get_db),
+                            token: str = Depends(oauth2Scheme)):
+    user_name = token_tools.get_user_name_by_token(token=token)
+    if not crud.get_user_by_name(user_name=user_name, db=db):
+        raise HTTPException(
+            status_code=400,
+            detail='User does not exist!'
+        )
+    crud.create_reply(db=db, reply_create=reply_create, user_name=user_name)
+    return {
+        "status": "success"
+    }
+
+
+@Remark_router.get("/get/inpost/{post_uuid_for_get_remark}/{page}")
 def get_remark_in_post_by_postuuid(page: int,
                                    post_uuid_for_get_remark: str,
                                    db: Session = Depends(get_db)):
+    remark_from_db = crud.get_remarks_by_post_uuid(post_uuid=post_uuid_for_get_remark,
+                                                   page=page, db=db)
+    list_for_return: list[dict] = []
+    for x in remark_from_db:
+        temp_dict = {
+            "id": x.id,
+            "post_uuid": x.post_uuid,
+            "user_uuid": x.user_uuid,
+            "user_name": x.user_name,
+            "remark_uuid": x.remark_uuid,
+            "content": x.content,
+            "date": x.date,
+            "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=x.user_uuid)[0]
+        }
+        list_for_return.append(temp_dict)
 
-    return crud.get_remarks_by_post_uuid(post_uuid=post_uuid_for_get_remark, page=page, db=db)
+    return list_for_return
+
+
+@Remark_router.get("/get/reply/{remark_uuid_for_get_reply}/{page}")
+def get_reply_by_remark_uuid(page: int,
+                             remark_uuid_for_get_reply: str,
+                             db: Session = Depends(get_db)):
+    reply_from_db = crud.get_replies_by_remark_uuid(remark_uuid=remark_uuid_for_get_reply,
+                                                    page=page, db=db)
+    list_for_return: list[dict] = []
+    for x in reply_from_db:
+        temp_dict = {
+            "id": x.id,
+            "reply_to_remark_uuid": x.reply_to_remark_uuid,
+            "reply_uuid": x.reply_uuid,
+            "reply_to_user_name": x.reply_to_user_name,
+            "reply_to_user_uuid": x.reply_to_user_uuid,
+            "content": x.content,
+            "user_uuid": x.user_uuid,
+            "user_name": x.user_name,
+            "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=x.user_uuid)[0],
+            "date": x.date
+        }
+        list_for_return.append(temp_dict)
+
+    return list_for_return
 
 
 @Remark_router.put("/update/inpost/{remark_uuid_for_update_remark}")
