@@ -172,4 +172,3 @@ def get_replies_by_remark_uuid(db: Session, remark_uuid, page: int) -> list[Repl
     return db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid) \
         .order_by(desc(models.Replies.date)) \
         .limit(reply_limit).offset(remark_db).all()
-
