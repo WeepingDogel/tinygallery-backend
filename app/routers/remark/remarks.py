@@ -76,6 +76,11 @@ def get_remark_in_post_by_postuuid(page: int,
     return list_for_return
 
 
+@Remark_router.get('/get/inpost/single_remark/{remark_uuid_for_get_reply}')
+def get_single_remark_by_remark_uuid():
+    pass
+
+
 @Remark_router.get("/get/reply/{remark_uuid_for_get_reply}/{page}")
 def get_reply_by_remark_uuid(page: int,
                              remark_uuid_for_get_reply: str,
