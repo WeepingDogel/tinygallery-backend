@@ -54,9 +54,9 @@ def create_reply_for_remark(reply_create: schemas.ReplyCreate,
 
 
 @Remark_router.get("/get/inpost/{post_uuid_for_get_remark}/{page}")
-def get_remark_in_post_by_postuuid(page: int,
-                                   post_uuid_for_get_remark: str,
-                                   db: Session = Depends(get_db)):
+def get_remark_in_post_by_post_uuid(page: int,
+                                    post_uuid_for_get_remark: str,
+                                    db: Session = Depends(get_db)):
     remark_from_db = crud.get_remarks_by_post_uuid(post_uuid=post_uuid_for_get_remark,
                                                    page=page, db=db)
     list_for_return: list[dict] = []
@@ -76,9 +76,28 @@ def get_remark_in_post_by_postuuid(page: int,
     return list_for_return
 
 
-@Remark_router.get('/get/inpost/single_remark/{remark_uuid_for_get_reply}')
-def get_single_remark_by_remark_uuid():
-    pass
+@Remark_router.get('/get/in_remark/single/{remark_uuid}')
+def get_single_remark_by_remark_uuid(remark_uuid: str, db: Session = Depends(get_db)):
+    remark_db = crud.get_remark_by_remark_uuid(db=db, remark_uuid=remark_uuid)
+
+    if not remark_db:
+        raise HTTPException(
+            status_code=500,
+            detail="The comment doesn't exist."
+        )
+
+    temp_dict = {
+        "id": remark_db.id,
+        "remark_uuid": remark_db.remark_uuid,
+        "post_uuid": remark_db.post_uuid,
+        "user_uuid": remark_db.user_uuid,
+        "user_name": remark_db.user_name,
+        "content": remark_db.content,
+        "date": remark_db.date,
+        "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=remark_db.user_uuid)[0]
+    }
+
+    return temp_dict
 
 
 @Remark_router.get("/get/reply/{remark_uuid_for_get_reply}/{page}")
