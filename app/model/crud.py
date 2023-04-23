@@ -158,7 +158,7 @@ def create_reply(db: Session, reply_create: schemas.ReplyCreate, user_name: str)
     return True
 
 
-def get_remarks_by_post_uuid(db: Session, post_uuid, page: int) -> list[Remarks]:
+def get_remarks_by_post_uuid(db: Session, post_uuid: str, page: int) -> list[Remarks]:
     remark_limit = config.remark_limit
     remark_db = (page - 1) * config.remark_limit
     return db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid) \
@@ -166,7 +166,11 @@ def get_remarks_by_post_uuid(db: Session, post_uuid, page: int) -> list[Remarks]
         .limit(remark_limit).offset(remark_db).all()
 
 
-def get_replies_by_remark_uuid(db: Session, remark_uuid, page: int) -> list[Replies]:
+def get_remark_by_remark_uuid(db: Session, remark_uuid: str) -> list[Remarks]:
+    return db.query(models.Remarks).filter(models.Remarks.remark_uuid == remark_uuid).first()
+
+
+def get_replies_by_remark_uuid(db: Session, remark_uuid: str, page: int) -> list[Replies]:
     reply_limit = config.reply_limit
     remark_db = (page - 1) * config.reply_limit
     return db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid) \
