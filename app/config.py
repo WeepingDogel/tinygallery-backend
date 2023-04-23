@@ -38,9 +38,9 @@ AVATAR_SIZE_HOME = 40, 40
 BACKGROUND_DIR = "./static/backgrounds"
 
 # Static resource server Url
-POSTS_RESOURCE_SERVER_URL = "http://localhost:8755/static/posts/"
-AVATARS_RESOURCE_SERVER_URL = "http://localhost:8755/static/avatar/"
-BACKGROUND_RESOURCE_SERVER = "http://localhost:8755/static/backgrounds"
+POSTS_RESOURCE_SERVER_URL = "http://127.0.0.1:8755/static/posts/"
+AVATARS_RESOURCE_SERVER_URL = "http://127.0.0.1:8755/static/avatar/"
+BACKGROUND_RESOURCE_SERVER = "http://127.0.0.1:8755/static/backgrounds"
 
 # The maximum number of remarks on a single post.
 remark_limit = 10
