@@ -46,4 +46,4 @@ BACKGROUND_RESOURCE_SERVER = "http://127.0.0.1:8755/static/backgrounds"
 remark_limit = 10
 
 # The maximum number of replies on a single remark.
-reply_limit = 5
+reply_limit = 300
