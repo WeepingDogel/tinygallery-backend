@@ -1,3 +1,4 @@
+# Import necessary dependencies
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
@@ -9,6 +10,7 @@ from .model import models
 from .utilities.dir_tool import create_all_project_dir
 from app.dependencies.db import engine
 
+# Define tags metadata for API documentation
 tags_metadata = [
     {
         "name": "User",
@@ -28,6 +30,7 @@ tags_metadata = [
     }
 ]
 
+# Define project description
 document_description = """
 This project is under **development**, only 
 * /user/register,
@@ -41,12 +44,15 @@ This project is under **development**, only
 interface are available.
 """
 
+# Create FastAPI app instance with tags and description
 app = FastAPI(openapi_tags=tags_metadata, description=document_description)
 
+# Set allowed origins for CORS middleware
 origins = [
     "*",
 ]
 
+# Add CORS middleware to app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -55,17 +61,21 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# Create necessary project directories
 create_all_project_dir()
 
+# Include routers for various endpoints
 app.include_router(user.userAuthRouter)
 app.include_router(image.Post_router)
 app.include_router(res_images.image_resources_api)
 app.include_router(remarks.Remark_router)
 app.include_router(userdata.userdata_router)
 
+# Create database models
 models.Base.metadata.create_all(bind=engine)
 
 
+# Define root route for API
 @app.get("/")
 def read_root():
     return {'Data': 'Hello World! This is the backend of TinyGallery created by WeepingDogel!'}

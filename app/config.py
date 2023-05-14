@@ -24,9 +24,8 @@ ALLOW_SUFFIX = ("jpg", "png", "bmp", "jpeg", "gif", "webp")
 size = 256, 256
 # The quality of compressed cover file.
 quality = 50
-# The maximum number of posts on a single page.
+# The maximum amount posts on a single page.
 posts_limit = 20
-
 
 # User avatar directory.
 AVATAR_DIR = "./static/avatars"
@@ -42,8 +41,8 @@ POSTS_RESOURCE_SERVER_URL = "http://127.0.0.1:8755/static/posts/"
 AVATARS_RESOURCE_SERVER_URL = "http://127.0.0.1:8755/static/avatar/"
 BACKGROUND_RESOURCE_SERVER = "http://127.0.0.1:8755/static/backgrounds"
 
-# The maximum number of remarks on a single post.
+# The maximum amount remarks on a single post.
 remark_limit = 10
 
-# The maximum number of replies on a single remark.
+# The maximum amount replies on a single remark.
 reply_limit = 300
