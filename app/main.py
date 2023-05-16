@@ -6,6 +6,7 @@ from .routers.posts import image
 from .routers.resources import res_images
 from .routers.remark import remarks
 from .routers.userdata import userdata
+from .routers.Likes import likes
 from .model import models
 from .utilities.dir_tool import create_all_project_dir
 from app.dependencies.db import engine
@@ -40,6 +41,8 @@ This project is under **development**, only
 * /posts/update,
 * /resources/posts/,
 * /resources/posts/single
+* /userdata/get/username
+
 
 interface are available.
 """
@@ -70,6 +73,7 @@ app.include_router(image.Post_router)
 app.include_router(res_images.image_resources_api)
 app.include_router(remarks.Remark_router)
 app.include_router(userdata.userdata_router)
+app.include_router(likes.likes_api)
 
 # Create database models
 models.Base.metadata.create_all(bind=engine)

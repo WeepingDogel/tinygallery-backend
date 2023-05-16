@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from ..utilities import userdata_tool
 from . import models, schemas
-from .models import Posts, Remarks, Replies
+from .models import Posts, Remarks, Replies, Likes
 from .. import config
 
 
@@ -176,3 +176,96 @@ def get_replies_by_remark_uuid(db: Session, remark_uuid: str, page: int) -> list
     return db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid) \
         .order_by(desc(models.Replies.date)) \
         .limit(reply_limit).offset(remark_db).all()
+
+
+def get_like_status_from_database(db: Session, post_uuid: str, user_name: str) -> Likes:
+    return db.query(models.Likes).filter(models.Likes.post_uuid == post_uuid, models.Likes.user_name == user_name) \
+        .first()
+
+
+def write_like_status_in_database(db: Session, post_uuid: str, user_name: str) -> bool:
+    db_posts = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid)
+    origin_num_of_likes = db_posts.first().dots
+    current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if not get_like_status_from_database(db=db, post_uuid=post_uuid, user_name=user_name):
+        user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
+        db_like = models.Likes(
+            post_uuid=post_uuid,
+            user_name=user_name,
+            user_uuid=user_uuid,
+            liked=True,
+            date=current_date
+        )
+        status: int = db_posts.update(
+            {
+                "dots": origin_num_of_likes + 1
+            },
+            synchronize_session="fetch"
+        )
+
+        if status == 0:
+            return False
+
+        db.add(db_like)
+        db.commit()
+        db.refresh(db_like)
+        return True
+    else:
+        db_like = db.query(models.Likes) \
+            .filter(models.Likes.post_uuid == post_uuid, models.Likes.user_name == user_name)
+        if not db_like.first().liked:
+            status_like: int = db_like.update(
+                {
+                    "liked": True,
+                    "date": current_date
+                },
+                synchronize_session="fetch"
+            )
+            status_post: int = db_posts.update(
+                {
+                    "dots": origin_num_of_likes + 1
+                },
+                synchronize_session="fetch"
+            )
+            if status_like == 0:
+                return False
+            if status_post == 0:
+                return False
+
+            db.commit()
+            return True
+
+
+def cancel_like_status_in_database(db: Session, post_uuid: str, user_name: str) -> bool:
+    db_posts = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid)
+    origin_num_of_likes = db_posts.first().dots
+    db_like = db.query(models.Likes) \
+        .filter(models.Likes.post_uuid == post_uuid, models.Likes.user_name == user_name)
+    current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if not db_like:
+        return False
+
+    status_like: int = db_like.update(
+        {
+            "liked": False,
+            "date": current_date
+        },
+        synchronize_session="fetch"
+    )
+
+    status_post: int = db_posts.update(
+        {
+            "dots": origin_num_of_likes - 1
+        },
+        synchronize_session="fetch"
+    )
+
+    if status_like == 0:
+        return False
+
+    if status_post == 0:
+        return False
+
+    db.commit()
+
+    return True
