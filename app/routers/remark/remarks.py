@@ -54,9 +54,9 @@ def create_reply_for_remark(reply_create: schemas.ReplyCreate,
 
 
 @Remark_router.get("/get/inpost/{post_uuid_for_get_remark}/{page}")
-def get_remark_in_post_by_post_uuid(page: int,
-                                    post_uuid_for_get_remark: str,
-                                    db: Session = Depends(get_db)):
+async def get_remark_in_post_by_post_uuid(page: int,
+                                          post_uuid_for_get_remark: str,
+                                          db: Session = Depends(get_db)):
     remark_from_db = crud.get_remarks_by_post_uuid(post_uuid=post_uuid_for_get_remark,
                                                    page=page, db=db)
     list_for_return: list[dict] = []
@@ -101,9 +101,9 @@ def get_single_remark_by_remark_uuid(remark_uuid: str, db: Session = Depends(get
 
 
 @Remark_router.get("/get/reply/{remark_uuid_for_get_reply}/{page}")
-def get_reply_by_remark_uuid(page: int,
-                             remark_uuid_for_get_reply: str,
-                             db: Session = Depends(get_db)):
+async def get_reply_by_remark_uuid(page: int,
+                                   remark_uuid_for_get_reply: str,
+                                   db: Session = Depends(get_db)):
     reply_from_db = crud.get_replies_by_remark_uuid(remark_uuid=remark_uuid_for_get_reply,
                                                     page=page, db=db)
     list_for_return: list[dict] = []
