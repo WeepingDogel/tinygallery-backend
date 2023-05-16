@@ -68,7 +68,7 @@ async def get_remark_in_post_by_post_uuid(page: int,
             "user_name": x.user_name,
             "remark_uuid": x.remark_uuid,
             "content": x.content,
-            "date": x.date,
+            "date": x.date[0:16],
             "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=x.user_uuid)[0]
         }
         list_for_return.append(temp_dict)
@@ -93,7 +93,7 @@ def get_single_remark_by_remark_uuid(remark_uuid: str, db: Session = Depends(get
         "user_uuid": remark_db.user_uuid,
         "user_name": remark_db.user_name,
         "content": remark_db.content,
-        "date": remark_db.date,
+        "date": remark_db.date[0:16],
         "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=remark_db.user_uuid)[0]
     }
 
@@ -118,7 +118,7 @@ async def get_reply_by_remark_uuid(page: int,
             "user_uuid": x.user_uuid,
             "user_name": x.user_name,
             "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=x.user_uuid)[0],
-            "date": x.date
+            "date": x.date[0:16]
         }
         list_for_return.append(temp_dict)
 
