@@ -21,8 +21,12 @@ likes_api = APIRouter(
 
 @likes_api.get('/get/like_status')
 async def get_like_status(post_uuid: str, db: Session = Depends(get_db), token: str = Depends(oauth2Scheme)):
-    
-    return crud.get_like_status_from_database(post_uuid=post_uuid, db=db, user_name=get_user_name_by_token(token=token))
+    like_status = crud.get_like_status_from_database(post_uuid=post_uuid, db=db,
+                                                     user_name=get_user_name_by_token(token=token))
+    if like_status is None:
+        return False
+    else:
+        return like_status
 
 
 @likes_api.post("/send/like")
