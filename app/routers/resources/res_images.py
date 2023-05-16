@@ -38,7 +38,7 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
             "user_name": x.user_name,
             "post_title": x.post_title,
             "dots": x.dots,
-            "date": x.date,
+            "date": x.date[0:16],
             "cover_url": dir_tool.get_cover_file_url(x.post_uuid),
             "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=get_user_uuid_by_name(user_name=x.user_name, db=db))[1]
         }
@@ -64,7 +64,7 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
         "user_name": post_db.user_name,
         "post_title": post_db.post_title,
         "dots": post_db.dots,
-        "date": post_db.date,
+        "date": post_db.date[0:16],
         "files_url": dir_tool.get_files_url_as_dict(post_db.post_uuid)
     }
 
