@@ -1,14 +1,17 @@
 import random
 import shutil
+from tzlocal import get_localzone
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile  # Importing necessary modules
 from sqlalchemy.orm import Session
-from pathlib import Path
-from ...dependencies.oauth2scheme import oauth2Scheme
-from ...dependencies.db import get_db
+
 from ... import config
-from ...utilities.userdata_tool import auth_user_by_name
-from ...utilities.token_tools import get_user_name_by_token
+from ...dependencies.db import get_db
+from ...dependencies.oauth2scheme import oauth2Scheme
 from ...utilities.dir_tool import save_user_avatar
+from ...utilities.token_tools import get_user_name_by_token
+from ...utilities.userdata_tool import auth_user_by_name
 
 # Creating a new APIRouter object with a prefix, tags, dependencies and responses defined.
 userdata_router = APIRouter(
@@ -81,3 +84,9 @@ def create_user_avatar(avatar: UploadFile,
 @userdata_router.delete("/delete/avatar/{user_name}")
 def delete_user_avatar(user_name: str):
     pass  # Placeholder code – function yet to be implemented
+
+
+@userdata_router.get("/get/timezone")
+def get_server_timezone():
+    tz = str(get_localzone())
+    return tz
