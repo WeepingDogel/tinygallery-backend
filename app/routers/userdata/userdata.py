@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile  # Importing necessary modules
 from sqlalchemy.orm import Session
 
+from ...model.crud import get_posts_quantity, get_user_quantity, get_comments_quantity
 from ... import config
 from ...dependencies.db import get_db
 from ...dependencies.oauth2scheme import oauth2Scheme
@@ -84,6 +85,24 @@ def create_user_avatar(avatar: UploadFile,
 @userdata_router.delete("/delete/avatar/{user_name}")
 def delete_user_avatar(user_name: str):
     pass  # Placeholder code – function yet to be implemented
+
+
+@userdata_router.get('/get/user_num')
+def get_users_num(db: Session = Depends(get_db)):
+    users_num = get_user_quantity(db=db)
+    return users_num
+
+
+@userdata_router.get('/get/posts_num')
+def get_posts_num(db: Session = Depends(get_db)):
+    posts_num = get_posts_quantity(db=db)
+    return posts_num
+
+
+@userdata_router.get('/get/comments_num')
+def get_comments_num(db: Session = Depends(get_db)):
+    comments_num = get_comments_quantity(db=db)
+    return comments_num
 
 
 @userdata_router.get("/get/timezone")

@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from ..utilities import userdata_tool
 from . import models, schemas
@@ -269,3 +269,18 @@ def cancel_like_status_in_database(db: Session, post_uuid: str, user_name: str) 
     db.commit()
 
     return True
+
+
+def get_user_quantity(db: Session):
+    db_users_num = db.query(func.count()).select_from(models.User).scalar()
+    return db_users_num
+
+
+def get_posts_quantity(db: Session):
+    db_posts_num = db.query(func.count()).select_from(models.Posts).scalar()
+    return db_posts_num
+
+
+def get_comments_quantity(db: Session):
+    db_comments_num = db.query(func.count()).select_from(models.Remarks).scalar()
+    return db_comments_num
