@@ -25,8 +25,29 @@ def create_user(db: Session, user: schemas.User):
     return db_user
 
 
+def create_admin(db: Session, user: dict, password_hashed: str):
+    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    user_uuid = str(uuid.uuid4())
+    db_admin = models.Admin(
+        user_name=user['username'],
+        password=password_hashed,
+        email=user['email'],
+        users_uuid=user_uuid,
+        date=date
+    )
+    db.add(db_admin)
+    db.commit()
+    db.refresh(db_admin)
+
+    return db_admin
+
+
 def get_user_by_name(db: Session, user_name: str):
     return db.query(models.User).filter(models.User.user_name == user_name).first()
+
+
+def get_admin_by_name(db: Session, user_name: str):
+    return db.query(models.Admin).filter(models.Admin.user_name == user_name).first()
 
 
 def update_user_name(db: Session, new_user_name: str):

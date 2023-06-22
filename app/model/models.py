@@ -58,3 +58,12 @@ class Likes(Base):
     liked = Column(Boolean, nullable=False, sqlite_on_conflict_not_null='FAIL')
     date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
 
+
+class Admin(Base):
+    __tablename__ = "ADMIN"
+    id = Column(Integer, primary_key=True, index=True)
+    user_name = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL', unique=True)
+    password = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    email = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    users_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL', unique=True)

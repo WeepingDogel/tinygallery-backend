@@ -1,5 +1,5 @@
 # Import necessary dependencies
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.auth import user
 from .routers.posts import image
@@ -10,6 +10,8 @@ from .routers.Likes import likes
 from .model import models
 from .utilities.dir_tool import create_all_project_dir
 from app.dependencies.db import engine
+from app.dependencies.db import get_db
+from app.utilities.admin_tool import create_admin_users
 
 # Define tags metadata for API documentation
 tags_metadata = [
@@ -77,6 +79,7 @@ app.include_router(likes.likes_api)
 
 # Create database models
 models.Base.metadata.create_all(bind=engine)
+create_admin_users()
 
 
 # Define root route for API
