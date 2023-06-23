@@ -20,7 +20,7 @@ CredentialsException = HTTPException(
 # Query the database to check if the username exists
 def get_user_name_by_token(token: str):
     """
-    :param token:
+    :param token: Token to get UserName.
     :return a username:
     """
     try:

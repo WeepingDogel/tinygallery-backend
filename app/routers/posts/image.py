@@ -41,7 +41,7 @@ def upload_image(is_nsfw: str = Form(),
 
     # This block for verification
     # ---verification block
-    if not crud.get_user_by_name(db, user_name=user_name):
+    if not crud.get_user_by_name(db, user_name=user_name) and not crud.get_admin_by_name(db, user_name=user_name):
         raise HTTPException(
             status_code=400, detail="The user does not exist!")
     if cover:

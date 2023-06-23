@@ -25,7 +25,7 @@ def create_remark_for_post(remark_create: schemas.RemarkCreate,
                            db: Session = Depends(get_db),
                            token: str = Depends(oauth2Scheme)):
     user_name = token_tools.get_user_name_by_token(token=token)
-    if not crud.get_user_by_name(user_name=user_name, db=db):
+    if not crud.get_user_by_name(user_name=user_name, db=db) and not crud.get_admin_by_name(user_name=user_name, db=db):
         raise HTTPException(
             status_code=400,
             detail='User does not exist!'
@@ -42,7 +42,7 @@ def create_reply_for_remark(reply_create: schemas.ReplyCreate,
                             db: Session = Depends(get_db),
                             token: str = Depends(oauth2Scheme)):
     user_name = token_tools.get_user_name_by_token(token=token)
-    if not crud.get_user_by_name(user_name=user_name, db=db):
+    if not crud.get_user_by_name(user_name=user_name, db=db) and not crud.get_admin_by_name(user_name=user_name, db=db):
         raise HTTPException(
             status_code=400,
             detail='User does not exist!'

@@ -10,7 +10,9 @@ def auth_user_by_name(db: Session, token: str) -> str:
         raise HTTPException(
             status_code=400, detail="The user does not exist!")
 
-    user_name_from_db = crud.get_user_by_name(db, user_name=user_name_from_token)
+    user_name_from_db = crud.get_user_by_name(db, user_name=user_name_from_token) if \
+        crud.get_user_by_name(db, user_name=user_name_from_token) else \
+        crud.get_admin_by_name(db, user_name=user_name_from_token)
     if not user_name_from_db:
         raise HTTPException(
             status_code=400, detail="The user does not exist!")
@@ -21,8 +23,13 @@ def auth_user_by_name(db: Session, token: str) -> str:
 def get_user_uuid_by_name(db: Session, user_name: str):
     user_uuid_from_db = crud.get_user_by_name(db, user_name=user_name)
     if not user_uuid_from_db:
-        raise HTTPException(
-            status_code=400,
-            detail="The user does not exist!"
-        )
+        return False
     return user_uuid_from_db.users_uuid
+
+
+def get_admin_uuid_by_name(db: Session, user_name: str):
+    admin_uuid_from_db = crud.get_admin_by_name(db, user_name=user_name)
+    if not admin_uuid_from_db:
+        return False
+
+    return admin_uuid_from_db.users_uuid

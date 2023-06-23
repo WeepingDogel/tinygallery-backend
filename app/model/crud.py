@@ -143,7 +143,8 @@ def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list
 def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: str):
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     remark_uuid = str(uuid.uuid4())
-    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
+    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name) if userdata_tool.get_user_uuid_by_name(
+        db=db, user_name=user_name) else userdata_tool.get_admin_uuid_by_name(db=db, user_name=user_name)
     db_remark = models.Remarks(
         post_uuid=remark_create.post_uuid,
         user_uuid=user_uuid,
@@ -161,7 +162,8 @@ def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: s
 def create_reply(db: Session, reply_create: schemas.ReplyCreate, user_name: str):
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     reply_uuid = str(uuid.uuid4())
-    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
+    user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name) if userdata_tool.get_user_uuid_by_name(
+        db=db, user_name=user_name) else userdata_tool.get_admin_uuid_by_name(db=db, user_name=user_name)
     reply_to_user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=reply_create.reply_to_user_name)
     db_reply = models.Replies(
         reply_to_remark_uuid=reply_create.reply_to_remark_uuid,
@@ -293,7 +295,8 @@ def cancel_like_status_in_database(db: Session, post_uuid: str, user_name: str) 
 
 
 def get_user_quantity(db: Session):
-    db_users_num = db.query(func.count()).select_from(models.User).scalar()
+    db_users_num = db.query(func.count()).select_from(models.User).scalar() + \
+                   db.query(func.count()).select_from(models.Admin).scalar()
     return db_users_num
 
 
