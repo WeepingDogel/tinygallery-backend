@@ -10,6 +10,11 @@ from .. import config
 
 
 def create_user(db: Session, user: schemas.User):
+    """
+    :param db: The session of the database.
+    :param user: The schemas of a user
+    :return: The result of creating a user
+    """
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     user_uuid = str(uuid.uuid4())
     db_user = models.User(
@@ -306,5 +311,58 @@ def get_posts_quantity(db: Session):
 
 
 def get_comments_quantity(db: Session):
-    db_comments_num = db.query(func.count()).select_from(models.Remarks).scalar()
+    db_comments_num = db.query(func.count()).select_from(models.Remarks).scalar() \
+                      + db.query(func.count()).select_from(models.Replies).scalar()
     return db_comments_num
+
+
+# Functions below are only prepared for administrators.
+
+def get_all_users(db: Session) -> list:
+    """
+    Query the list of all users.
+    :param db: Session of the database.
+    :return: The list of all users.
+    """
+
+    return db.query(models.User).all()
+
+
+def get_all_admins(db: Session) -> list:
+    """
+    Query the list of all administrators.
+    :param db: Session of the database
+    :return: The list of all administrators
+    """
+
+    return db.query(models.Admin).all()
+
+
+def get_all_posts(db: Session) -> list:
+    """
+    Query the list of all posts.
+    :param db: Session of the database.
+    :return: The list of all posts.
+    """
+
+    return db.query(models.Posts).all()
+
+
+def get_all_comments(db: Session) -> list:
+    """
+    Query the list of all comments.
+    :param db: Session of the database.
+    :return: The list of all comments.
+    """
+
+    return db.query(models.Remarks).all()
+
+
+def get_all_replies(db: Session) -> list:
+    """
+    Query the list of all replies.
+    :param db: Session of the database.
+    :return: The list of all replies.
+    """
+
+    return db.query(models.Replies).all()
