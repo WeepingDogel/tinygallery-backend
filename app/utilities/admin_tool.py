@@ -2,12 +2,13 @@ from fastapi import HTTPException
 from .hash_tool import get_password_hash
 from .json_config_reader import read_admin_list
 from app.model.crud import create_admin, get_admin_by_name, get_all_users, \
-    get_all_posts, get_all_admins, get_all_comments, get_all_replies
+    get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from app.dependencies.db import engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import ADMIN_LIST
 from app.utilities.token_tools import get_user_name_by_token
+from collections import Counter, defaultdict
 
 get_db = sessionmaker(bind=engine)
 
@@ -97,3 +98,41 @@ def get_the_list_of_all_replies(db: Session) -> list:
     """
     db_all_replies = get_all_replies(db=db)
     return db_all_replies
+
+
+def edit_the_user():
+    """
+    The function to edit a user column.
+
+    :return:
+    """
+    pass
+
+
+def get_the_tendency_data_of_the_user(db: Session):
+    """
+    Get the data of users' tendency.
+    :param db: The Session of database.
+    :return: The data of users' tendency.
+    """
+    user_records = get_user_tendency(db=db)
+
+    user_counts = Counter(record['date'] for record in user_records)
+    user_tendency = [{'date': date, 'count': count} for date, count in user_counts.items()]
+
+    return user_tendency
+
+
+def get_the_tendency_data_of_the_posts(db: Session):
+    """
+    Get the data of posts' tendency.
+    :param db: The Session of database.
+    :return: The data of users' tendency.
+    """
+
+    posts_records = get_posts_tendency(db=db)
+
+    posts_counts = Counter(record['date'] for record in posts_records)
+    posts_tendency = [{'date': date, 'count': count} for date, count in posts_counts.items()]
+
+    return posts_tendency

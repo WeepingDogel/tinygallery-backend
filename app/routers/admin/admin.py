@@ -140,3 +140,39 @@ def block_a_user():
 @admin_auth_router.delete('/delete_user')
 def delete_a_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
     pass
+
+
+@admin_auth_router.get('/user_tendency_addition')
+def get_user_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Get the tendency of the users in 30 days.
+    :param token: The token of the administrator.
+    :param db: The Session of the database.
+    :return: The data of the users' tendency.
+    """
+    auth_admin = admin_tool.admin_identification_check(token=token, db=db)
+    if not auth_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Permission Denied."
+        )
+
+    return admin_tool.get_the_tendency_data_of_the_user(db=db)
+
+
+@admin_auth_router.get('/posts_tendency_addition')
+def get_posts_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Get the tendency of the posts in 30 days.
+    :param token: The token of the administrator.
+    :param db: The Session of the database.
+    :return: The data of the posts' tendency.
+    """
+    auth_admin = admin_tool.admin_identification_check(token=token, db=db)
+    if not auth_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Permission Denied."
+        )
+
+    return admin_tool.get_the_tendency_data_of_the_posts(db=db)

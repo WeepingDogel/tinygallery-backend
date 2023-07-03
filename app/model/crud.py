@@ -1,5 +1,6 @@
 import time
 import uuid
+from datetime import datetime, timedelta
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
@@ -366,3 +367,31 @@ def get_all_replies(db: Session) -> list:
     """
 
     return db.query(models.Replies).all()
+
+
+def get_user_tendency(db: Session):
+    """
+    Query the data of the past 30 days for making a chart of users' tendency.
+    :param db: Session of the database.
+    :return: The list of the data.
+    """
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    db_user_tendency = db.query(func.date(models.User.date).label('date'), models.User.users_uuid) \
+        .filter(models.User.date >= thirty_days_ago) \
+        .group_by(models.User.date).all()
+
+    return db_user_tendency
+
+
+def get_posts_tendency(db: Session):
+    """
+    Query the data of the past 30 days for making a chart of posts' tendency.
+    :param db: Session of the database.
+    :return: The list of the data.
+    """
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    db_posts_tendency = db.query(func.date(models.Posts.date).label('date'), models.Posts.post_uuid) \
+        .filter(models.Posts.date >= thirty_days_ago) \
+        .group_by(models.Posts.date).all()
+
+    return db_posts_tendency
