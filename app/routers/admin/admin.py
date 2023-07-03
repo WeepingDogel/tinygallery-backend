@@ -133,7 +133,7 @@ def edit_user(token: str = Depends(oauth2Scheme)):
 
 
 @admin_auth_router.put('/block_user')
-def block_a_user():
+def block_a_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
     pass
 
 
