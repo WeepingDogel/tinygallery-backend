@@ -127,18 +127,55 @@ def get_all_replies(token: str = Depends(oauth2Scheme), db: Session = Depends(ge
     return admin_tool.get_all_replies(db=db)
 
 
+@admin_auth_router.get('/get_single_user')
+def get_single_user(user_uuid: str, token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Get the data of a single user by providing an uuid.
+    :param user_uuid: The uuid of the user to query.
+    :param token: The token of administrator to identify.
+    :param db: The Session of the database.
+    :return: A json type data of the user to query.
+    """
+    auth_admin = admin_tool.admin_identification_check(token=token, db=db)
+    if not auth_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Permission Denied."
+        )
+    print(user_uuid)
+    return admin_tool.get_data_of_a_user(user_uuid=user_uuid, db=db)
+
+
 @admin_auth_router.put('/edit_user')
-def edit_user(token: str = Depends(oauth2Scheme)):
+def edit_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Edit a user.
+    :param token: The token of administrator.
+    :param db: The Session of Database.
+    :return: The result of editing a user.
+    """
     pass
 
 
 @admin_auth_router.put('/block_user')
 def block_a_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Block a user.
+    :param token: The token of administrator.
+    :param db: The Session of Database.
+    :return: The result of blocking a user.
+    """
     pass
 
 
 @admin_auth_router.delete('/delete_user')
 def delete_a_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+    """
+    Delete a user.
+    :param token: The token of administrator.
+    :param db: The Session of Database.
+    :return: The result of deleting a user.
+    """
     pass
 
 

@@ -375,9 +375,9 @@ def get_user_tendency(db: Session):
     :param db: Session of the database.
     :return: The list of the data.
     """
-    thirty_days_ago = datetime.now() - timedelta(days=30)
+    days_ago = datetime.now() - timedelta(days=360)
     db_user_tendency = db.query(func.date(models.User.date).label('date'), models.User.users_uuid) \
-        .filter(models.User.date >= thirty_days_ago) \
+        .filter(models.User.date >= days_ago) \
         .group_by(models.User.date).all()
 
     return db_user_tendency
@@ -389,9 +389,30 @@ def get_posts_tendency(db: Session):
     :param db: Session of the database.
     :return: The list of the data.
     """
-    thirty_days_ago = datetime.now() - timedelta(days=30)
+    days_ago = datetime.now() - timedelta(days=360)
     db_posts_tendency = db.query(func.date(models.Posts.date).label('date'), models.Posts.post_uuid) \
-        .filter(models.Posts.date >= thirty_days_ago) \
+        .filter(models.Posts.date >= days_ago) \
         .group_by(models.Posts.date).all()
 
     return db_posts_tendency
+
+
+def get_data_of_a_user(db: Session, user_uuid: str) -> dict:
+    """
+    Get data of a user by uuid, return a dict.
+    :param user_uuid: The uuid of the user.
+    :param db: Session of the database.
+    :return: A list of data.
+    """
+    return db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+
+
+def get_data_of_a_post(db: Session, post_uuid: str) -> dict:
+    """
+    Get data of a post by uuid, return a List.
+    :param db: Session of the database.
+    :param post_uuid: THe uuid of the post.
+    :return: A list of data.
+    """
+
+    return db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()

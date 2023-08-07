@@ -2,7 +2,8 @@ from fastapi import HTTPException
 from .hash_tool import get_password_hash
 from .json_config_reader import read_admin_list
 from app.model.crud import create_admin, get_admin_by_name, get_all_users, \
-    get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency
+    get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency, \
+    get_data_of_a_post, get_data_of_a_user
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from app.dependencies.db import engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -136,3 +137,15 @@ def get_the_tendency_data_of_the_posts(db: Session):
     posts_tendency = [{'date': date, 'count': count} for date, count in posts_counts.items()]
 
     return posts_tendency
+
+
+def get_the_data_of_a_single_user(db: Session, user_uuid: str):
+    """
+    Get the data of a single user by uuid.
+    :param db: The session of database.
+    :param user_uuid: The uuid of the user.
+    :return: A JSON data of the user's properties.
+    """
+    db_user = get_data_of_a_user(db=db, user_uuid=user_uuid)
+
+    return db_user
