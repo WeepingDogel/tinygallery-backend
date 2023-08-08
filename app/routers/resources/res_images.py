@@ -87,12 +87,15 @@ def get_avatar_by_user_name(user_name_for_get_avatar: str, db: Session = Depends
     avatar_dir = Path(config.AVATAR_DIR)
     avatar_200px_dir = Path(avatar_dir.joinpath(user_uuid + '/200'))
     avatar_40px_dir = Path(avatar_dir.joinpath(user_uuid + '/40'))
+    avatar_full_image_dir = Path(avatar_dir.joinpath(user_uuid))
     avatar_200px = resource_server + "/" + str(list(avatar_200px_dir.glob('*.*'))[0])
     avatar_40px = resource_server + "/" + str(list(avatar_40px_dir.glob('*.*'))[0])
+    avatar_full_image = resource_server + "/" + str(list(avatar_full_image_dir.glob('*.*'))[0])
     return {
         'status': "success",
         'avatar_200px': avatar_200px,
-        'avatar_40px': avatar_40px
+        'avatar_40px': avatar_40px,
+        'full_image': avatar_full_image
     }
 
 

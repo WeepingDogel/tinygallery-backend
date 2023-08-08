@@ -142,7 +142,7 @@ def get_single_user(user_uuid: str, token: str = Depends(oauth2Scheme), db: Sess
             status_code=400,
             detail="Permission Denied."
         )
-    print(user_uuid)
+
     return admin_tool.get_data_of_a_user(user_uuid=user_uuid, db=db)
 
 

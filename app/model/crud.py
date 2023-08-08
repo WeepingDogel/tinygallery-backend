@@ -217,7 +217,13 @@ def write_like_status_in_database(db: Session, post_uuid: str, user_name: str) -
     origin_num_of_likes = db_posts.first().dots
     current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     if not get_like_status_from_database(db=db, post_uuid=post_uuid, user_name=user_name):
-        user_uuid = userdata_tool.get_user_uuid_by_name(db=db, user_name=user_name)
+        user_uuid = userdata_tool.get_user_uuid_by_name(db=db,
+                                                        user_name=user_name) if userdata_tool.get_user_uuid_by_name(
+            db=db, user_name=user_name) else userdata_tool.get_admin_uuid_by_name(db=db, user_name=user_name)
+
+        if not user_uuid:
+            return False
+
         db_like = models.Likes(
             post_uuid=post_uuid,
             user_name=user_name,
