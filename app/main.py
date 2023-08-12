@@ -15,8 +15,6 @@ from app.dependencies.db import engine
 from app.dependencies.db import get_db
 from app.utilities.admin_tool import create_admin_users
 
-
-
 # Define tags metadata for API documentation
 tags_metadata = [
     {
