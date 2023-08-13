@@ -30,7 +30,7 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
     for x in posts_from_db:
         user_uuid = get_user_uuid_by_name(user_name=x.user_name, db=db)
         admin_uuid = get_admin_uuid_by_name(user_name=x.user_name, db=db)
-        print(user_uuid)
+
         temp_dict = {
             "id": x.id,
             "description": x.description,
