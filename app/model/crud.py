@@ -377,7 +377,7 @@ def get_all_replies(db: Session) -> list:
 
 def get_user_tendency(db: Session):
     """
-    Query the data of the past 30 days for making a chart of users' tendency.
+    Query the data of the past 360 days for making a chart of users' tendency.
     :param db: Session of the database.
     :return: The list of the data.
     """
@@ -391,7 +391,7 @@ def get_user_tendency(db: Session):
 
 def get_posts_tendency(db: Session):
     """
-    Query the data of the past 30 days for making a chart of posts' tendency.
+    Query the data of the past 360 days for making a chart of posts' tendency.
     :param db: Session of the database.
     :return: The list of the data.
     """
@@ -401,6 +401,20 @@ def get_posts_tendency(db: Session):
         .group_by(models.Posts.date).all()
 
     return db_posts_tendency
+
+
+def get_comments_tendency(db: Session):
+    """
+    Query the data of the past 360 days for making a chart of comments' tendency.
+    :param db: The Session of the database.
+    :return: The list of the data.
+    """
+    days_ago = datetime.now() - timedelta(days=360)
+    db_comments_tendency = db.query(func.date(models.Remarks.date).label('date'), models.Remarks.remark_uuid) \
+        .filter(models.Remarks.date >= days_ago) \
+        .group_by(models.Remarks.date)
+
+    return db_comments_tendency
 
 
 def get_data_of_a_user(db: Session, user_uuid: str) -> dict:

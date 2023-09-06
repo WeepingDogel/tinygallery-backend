@@ -3,7 +3,7 @@ from .hash_tool import get_password_hash
 from .json_config_reader import read_admin_list
 from app.model.crud import create_admin, get_admin_by_name, get_all_users, \
     get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency, \
-    get_data_of_a_post, get_data_of_a_user
+    get_data_of_a_post, get_data_of_a_user, get_comments_tendency
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from app.dependencies.db import engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -128,7 +128,7 @@ def get_the_tendency_data_of_the_posts(db: Session):
     """
     Get the data of posts' tendency.
     :param db: The Session of database.
-    :return: The data of users' tendency.
+    :return: The data of posts' tendency.
     """
 
     posts_records = get_posts_tendency(db=db)
@@ -137,6 +137,20 @@ def get_the_tendency_data_of_the_posts(db: Session):
     posts_tendency = [{'date': date, 'count': count} for date, count in posts_counts.items()]
 
     return posts_tendency
+
+
+def get_the_tendency_data_of_the_comments(db: Session):
+    """
+    Get the data of the comments' tendency.
+    :param db: The Session of database.
+    :return: The data of comments' tendency.
+    """
+
+    comments_records = get_comments_tendency(db=db)
+    comments_counts = Counter(record['date'] for record in comments_records)
+    comments_tendency = [{'date': date, 'count': count} for date, count in comments_counts.items()]
+
+    return comments_tendency
 
 
 def get_the_data_of_a_single_user(db: Session, user_uuid: str):
@@ -149,3 +163,16 @@ def get_the_data_of_a_single_user(db: Session, user_uuid: str):
     db_user = get_data_of_a_user(db=db, user_uuid=user_uuid)
 
     return db_user
+
+
+def get_the_data_of_a_single_post(db: Session, post_uuid: str):
+    """
+    Get the data of a single post by uuid.
+    :param db: The Session of database.
+    :param post_uuid: the uuid of the post.
+    :return: A JSON datab of the post's properties.
+    """
+
+    db_post = get_data_of_a_post(db=db, post_uuid=post_uuid)
+
+    return db_post
