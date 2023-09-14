@@ -5,6 +5,7 @@ from app.dependencies.oauth2scheme import oauth2Scheme
 from app.dependencies.db import get_db
 from ... import config
 from app.utilities import admin_tool
+from app.model import schemas
 
 admin_auth_router = APIRouter(
     prefix="/admin",
@@ -147,14 +148,23 @@ def get_single_user(user_uuid: str, token: str = Depends(oauth2Scheme), db: Sess
 
 
 @admin_auth_router.put('/edit_user')
-def edit_user(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+def edit_user(user_manage: schemas.UserManage, token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
     """
     Edit a user.
+    :param user_manage: The data of the user to be updated.
     :param token: The token of administrator.
     :param db: The Session of Database.
     :return: The result of editing a user.
     """
-    pass
+    auth__admin = admin_tool.admin_identification_check(token=token, db=db)
+    if not auth__admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Permission Denied."
+        )
+
+    # return 'Test'
+    return admin_tool.edit_the_user(user_manage=user_manage, db=db)
 
 
 @admin_auth_router.put('/block_user')

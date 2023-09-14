@@ -53,3 +53,14 @@ class ReplyCreate(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserManage(BaseModel):
+    user_uuid: str
+    user_name: str
+    password: str
+    email: str
+    date: str
+
+    class Config:
+        orm_mode = True

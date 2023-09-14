@@ -8,6 +8,7 @@ from ..utilities import userdata_tool
 from . import models, schemas
 from .models import Posts, Remarks, Replies, Likes
 from .. import config
+from app.utilities.hash_tool import get_password_hash
 
 
 def create_user(db: Session, user: schemas.User):
@@ -436,3 +437,69 @@ def get_data_of_a_post(db: Session, post_uuid: str) -> dict:
     """
 
     return db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+
+
+def update_data_of_a_user(user_manage: schemas.UserManage, db: Session):
+    """
+    Update data of a user by uuid, return a Bool.
+    :param user_manage:
+    :param db: Session of the database.
+    :return: If success, return True.Otherwise, return the false.
+    """
+
+    db_update_user = db.query(models.User).filter(models.User.users_uuid == user_manage.user_uuid)
+
+    if db_update_user.first().user_name != user_manage.user_name:
+        status: int = db_update_user.update(
+            {
+                'user_name': user_manage.user_name
+            },
+            synchronize_session="evaluate"
+        )
+
+        if status == 0:
+            return False
+
+        db.commit()
+
+    if db_update_user.first().password != user_manage.password:
+        hashed_password = get_password_hash(password=user_manage.password)
+        status: int = db_update_user.update(
+            {
+                'password': hashed_password
+            },
+            synchronize_session="evaluate"
+        )
+
+        if status == 0:
+            return False
+
+        db.commit()
+
+    if db_update_user.first().email != user_manage.email:
+        status: int = db_update_user.update(
+            {
+                "email": user_manage.email
+            },
+            synchronize_session="evaluate"
+        )
+
+        if status == 0:
+            return False
+
+        db.commit()
+
+    if db_update_user.first().date != user_manage.date:
+        status: int = db_update_user.update(
+            {
+                'date': user_manage.date
+            },
+            synchronize_session="evaluate"
+        )
+
+        if status == 0:
+            return False
+
+        db.commit()
+
+    return True

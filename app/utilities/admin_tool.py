@@ -3,13 +3,14 @@ from .hash_tool import get_password_hash
 from .json_config_reader import read_admin_list
 from app.model.crud import create_admin, get_admin_by_name, get_all_users, \
     get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency, \
-    get_data_of_a_post, get_data_of_a_user, get_comments_tendency
+    get_data_of_a_post, get_data_of_a_user, get_comments_tendency, update_data_of_a_user
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from app.dependencies.db import engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import ADMIN_LIST
 from app.utilities.token_tools import get_user_name_by_token
 from collections import Counter, defaultdict
+from app.model import schemas
 
 get_db = sessionmaker(bind=engine)
 
@@ -101,13 +102,21 @@ def get_the_list_of_all_replies(db: Session) -> list:
     return db_all_replies
 
 
-def edit_the_user():
+def edit_the_user(user_manage: schemas.UserManage, db: Session):
     """
-    The function to edit a user column.
+    Edit a user by providing new information.
+    :param user_manage: The request body of the new data.
+    :param db: Session of the database.
+    :return: The status of the update.
+    """
 
-    :return:
-    """
-    pass
+    if update_data_of_a_user(user_manage=user_manage, db=db):
+        return {"status": "success"}
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error, update user data failed."
+        )
 
 
 def get_the_tendency_data_of_the_user(db: Session):
