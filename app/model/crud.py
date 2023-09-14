@@ -57,8 +57,16 @@ def get_admin_by_name(db: Session, user_name: str):
     return db.query(models.Admin).filter(models.Admin.user_name == user_name).first()
 
 
-def update_user_name(db: Session, new_user_name: str):
-    pass
+def get_user_by_uuid(db: Session, user_uuid: str):
+    return db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+
+
+def get_admin_by_uuid(db: Session, user_uuid: str):
+    return db.query(models.Admin).filter(models.Admin.users_uuid == user_uuid).first()
+
+
+# def update_user_name(db: Session, new_user_name: str):
+#     pass
 
 
 def db_create_post(db: Session,
