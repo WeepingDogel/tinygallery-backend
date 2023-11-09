@@ -1,3 +1,4 @@
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -6,6 +7,9 @@ from app.dependencies.db import get_db
 from ... import config
 from app.utilities import admin_tool
 from app.model import schemas
+from pyecharts.charts import Line
+from pyecharts.charts import Funnel
+from pyecharts import options as opts
 
 admin_auth_router = APIRouter(
     prefix="/admin",
@@ -197,6 +201,7 @@ def get_user_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(
     :param db: The Session of the database.
     :return: The data of the users' tendency.
     """
+
     auth_admin = admin_tool.admin_identification_check(token=token, db=db)
     if not auth_admin:
         raise HTTPException(
@@ -204,16 +209,32 @@ def get_user_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(
             detail="Permission Denied."
         )
 
-    return admin_tool.get_the_tendency_data_of_the_user(db=db)
+    data_final = admin_tool.get_the_tendency_data(db=db)
+    x_date = data_final.index.to_list()
+    y_user = data_final['users'].to_list()
+    y_posts = data_final['posts'].to_list()
+    y_comments = data_final['comments'].to_list()
+    y_replies = data_final['replies'].to_list()
+    chart_tendency = (
+        Line()
+        .add_xaxis(x_date)
+        .add_yaxis('Users', y_user, is_smooth=True)
+        .add_yaxis('Posts', y_posts, is_smooth=True)
+        .add_yaxis('Comments', y_comments, is_smooth=True)
+        .add_yaxis('Replies', y_replies, is_smooth=True)
+        .set_global_opts(title_opts=opts.TitleOpts(title="Data tendency"))
+    )
+    #
+    return chart_tendency.dump_options_with_quotes()
 
 
-@admin_auth_router.get('/posts_tendency_addition')
-def get_posts_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
+@admin_auth_router.get('/posts_toplist')
+def get_posts_tops(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
     """
-    Get the tendency of the posts in 360 days.
+    Get the toplist of the posts by likes.
     :param token: The token of the administrator.
     :param db: The Session of the database.
-    :return: The data of the posts' tendency.
+    :return: The data of the users' tendency.
     """
     auth_admin = admin_tool.admin_identification_check(token=token, db=db)
     if not auth_admin:
@@ -222,22 +243,16 @@ def get_posts_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends
             detail="Permission Denied."
         )
 
-    return admin_tool.get_the_tendency_data_of_the_posts(db=db)
+    data_final = admin_tool.get_the_toplist_data(db=db)
+    x_axis = data_final['post_title'].to_list()
+    y_axis = data_final['dots'].to_list()
+    # print(x_axis, y_axis)
+    chart_toplist = (
+        Funnel()
+        .add('Rank by Likes', [list(z) for z in zip(x_axis, y_axis)])
+        .set_global_opts(
+            xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=-15)),
+            title_opts=opts.TitleOpts(title="Rank"))
+    )
 
-
-@admin_auth_router.get('/comments_tendency_addition')
-def get_comments_tendency(token: str = Depends(oauth2Scheme), db: Session = Depends(get_db)):
-    """
-    Get the tendency of the comments in 360 days.
-    :param token: The token of the administrator.
-    :param db: The Session of the database.
-    :return: The data of the comments' tendency.
-    """
-    auth_admin = admin_tool.admin_identification_check(token=token, db=db)
-    if not auth_admin:
-        raise HTTPException(
-            status_code=400,
-            detail="Permission Denied."
-        )
-
-    return admin_tool.get_the_tendency_data_of_the_comments(db=db)
+    return chart_toplist.dump_options_with_quotes()

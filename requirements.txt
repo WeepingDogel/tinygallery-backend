@@ -27,3 +27,7 @@ typing_extensions==4.4.0
 tzlocal==5.0.1
 urllib3==2.0.3
 uvicorn==0.20.0
+
+pandas~=2.1.2
+pyecharts~=2.0.4
+objtyping~=0.5.4

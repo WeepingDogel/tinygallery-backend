@@ -1,16 +1,19 @@
+import pandas
 from fastapi import HTTPException
 from .hash_tool import get_password_hash
 from .json_config_reader import read_admin_list
 from app.model.crud import create_admin, get_admin_by_name, get_all_users, \
-    get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_user_tendency, get_posts_tendency, \
-    get_data_of_a_post, get_data_of_a_user, get_comments_tendency, update_data_of_a_user
+    get_all_posts, get_all_admins, get_all_comments, get_all_replies, get_data_of_a_post, get_data_of_a_user, \
+    update_data_of_a_user
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from app.dependencies.db import engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import ADMIN_LIST
 from app.utilities.token_tools import get_user_name_by_token
-from collections import Counter, defaultdict
 from app.model import schemas
+from objtyping import to_primitive
+import pandas as pd
+import json
 
 get_db = sessionmaker(bind=engine)
 
@@ -119,47 +122,44 @@ def edit_the_user(user_manage: schemas.UserManage, db: Session):
         )
 
 
-def get_the_tendency_data_of_the_user(db: Session):
+def get_the_tendency_data(db: Session):
     """
     Get the data of users' tendency.
     :param db: The Session of database.
     :return: The data of users' tendency.
     """
-    user_records = get_user_tendency(db=db)
 
-    user_counts = Counter(record['date'] for record in user_records)
-    user_tendency = [{'date': date, 'count': count} for date, count in user_counts.items()]
+    data_all_users = pd.read_json(json.dumps(to_primitive(get_all_users(db=db))))
+    data_all_posts = pd.read_json(json.dumps(to_primitive(get_all_posts(db=db))))
+    data_all_comments = pd.read_json(json.dumps(to_primitive(get_all_comments(db=db))))
+    data_all_replies = pd.read_json(json.dumps(to_primitive(get_all_replies(db=db))))
+    data_all_users['date'] = pd.to_datetime(data_all_users['date']).dt.date
+    data_all_posts['date'] = pd.to_datetime(data_all_posts['date']).dt.date
+    data_all_comments['date'] = pd.to_datetime(data_all_comments['date']).dt.date
+    data_all_replies['date'] = pd.to_datetime(data_all_replies['date']).dt.date
+    count_users = data_all_users.groupby('date')['users_uuid'].count()
+    count_posts = data_all_posts.groupby('date')['post_uuid'].count()
+    count_comments = data_all_comments.groupby('date')['remark_uuid'].count()
+    count_replies = data_all_replies.groupby('date')['reply_uuid'].count()
+    data_final = pd.DataFrame({'users': count_users, 'posts': count_posts, 'comments': count_comments,
+                               'replies': count_replies})
+    data_final = data_final.fillna(0)
+    # print(data_final)
+    return data_final
 
-    return user_tendency
 
-
-def get_the_tendency_data_of_the_posts(db: Session):
+def get_the_toplist_data(db: Session):
     """
-    Get the data of posts' tendency.
-    :param db: The Session of database.
-    :return: The data of posts' tendency.
-    """
-
-    posts_records = get_posts_tendency(db=db)
-
-    posts_counts = Counter(record['date'] for record in posts_records)
-    posts_tendency = [{'date': date, 'count': count} for date, count in posts_counts.items()]
-
-    return posts_tendency
-
-
-def get_the_tendency_data_of_the_comments(db: Session):
-    """
-    Get the data of the comments' tendency.
-    :param db: The Session of database.
-    :return: The data of comments' tendency.
+    Get and analyze the data of the toplist from database.
+    :param db: Session of the database.
+    :return: The final data to output.
     """
 
-    comments_records = get_comments_tendency(db=db)
-    comments_counts = Counter(record['date'] for record in comments_records)
-    comments_tendency = [{'date': date, 'count': count} for date, count in comments_counts.items()]
+    # Get the original data from database and convert to json.
+    data_all_posts_original = pd.read_json(json.dumps(to_primitive(get_all_posts(db=db))))
+    data_posts_rank = data_all_posts_original.sort_values('dots', ascending=False)[['post_title', 'dots']]
 
-    return comments_tendency
+    return data_posts_rank
 
 
 def get_the_data_of_a_single_user(db: Session, user_uuid: str):

@@ -334,7 +334,7 @@ def get_comments_quantity(db: Session):
 
 # Functions below are only prepared for administrators.
 
-def get_all_users(db: Session) -> list:
+def get_all_users(db: Session) -> list[dict]:
     """
     Query the list of all users.
     :param db: Session of the database.
@@ -382,48 +382,6 @@ def get_all_replies(db: Session) -> list:
     """
 
     return db.query(models.Replies).all()
-
-
-def get_user_tendency(db: Session):
-    """
-    Query the data of the past 360 days for making a chart of users' tendency.
-    :param db: Session of the database.
-    :return: The list of the data.
-    """
-    days_ago = datetime.now() - timedelta(days=360)
-    db_user_tendency = db.query(func.date(models.User.date).label('date'), models.User.users_uuid) \
-        .filter(models.User.date >= days_ago) \
-        .group_by(models.User.date).all()
-
-    return db_user_tendency
-
-
-def get_posts_tendency(db: Session):
-    """
-    Query the data of the past 360 days for making a chart of posts' tendency.
-    :param db: Session of the database.
-    :return: The list of the data.
-    """
-    days_ago = datetime.now() - timedelta(days=360)
-    db_posts_tendency = db.query(func.date(models.Posts.date).label('date'), models.Posts.post_uuid) \
-        .filter(models.Posts.date >= days_ago) \
-        .group_by(models.Posts.date).all()
-
-    return db_posts_tendency
-
-
-def get_comments_tendency(db: Session):
-    """
-    Query the data of the past 360 days for making a chart of comments' tendency.
-    :param db: The Session of the database.
-    :return: The list of the data.
-    """
-    days_ago = datetime.now() - timedelta(days=360)
-    db_comments_tendency = db.query(func.date(models.Remarks.date).label('date'), models.Remarks.remark_uuid) \
-        .filter(models.Remarks.date >= days_ago) \
-        .group_by(models.Remarks.date)
-
-    return db_comments_tendency
 
 
 def get_data_of_a_user(db: Session, user_uuid: str) -> dict:
