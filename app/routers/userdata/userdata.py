@@ -28,7 +28,7 @@ userdata_router = APIRouter(
 
 
 # Endpoint for getting user name using token
-@userdata_router.put("/get/username")
+@userdata_router.get("/get/username")
 def get_user_name(token: str = Depends(oauth2Scheme)):
     user_name = get_user_name_by_token(token=token)
     return {'username': user_name}
