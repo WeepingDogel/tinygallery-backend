@@ -1,14 +1,15 @@
 import time
 import uuid
-from datetime import datetime, timedelta
+from typing import Type
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
-from ..utilities import userdata_tool
-from . import models, schemas
-from .models import Posts, Remarks, Replies, Likes
-from .. import config
+
 from app.utilities.hash_tool import get_password_hash
+from . import models, schemas
+from .models import Posts, Remarks, Replies, Likes, User
+from .. import config
+from ..utilities import userdata_tool
 
 
 def create_user(db: Session, user: schemas.User):
@@ -95,7 +96,7 @@ def db_create_post(db: Session,
     return True
 
 
-def get_posts_by_page(db: Session, page: int) -> list[Posts]:
+def get_posts_by_page(db: Session, page: int) -> list[Type[Posts]]:
     post_limit = config.posts_limit
     page_db = (page - 1) * config.posts_limit
     return db.query(models.Posts) \
@@ -103,7 +104,7 @@ def get_posts_by_page(db: Session, page: int) -> list[Posts]:
         .limit(post_limit).offset(page_db).all()
 
 
-def get_single_post_by_uuid(db: Session, post_uuid: str) -> list[Posts]:
+def get_single_post_by_uuid(db: Session, post_uuid: str) -> Type[Posts] | None:
     return db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
 
 
@@ -145,7 +146,7 @@ def update_post_by_uuid(db: Session,
     return True
 
 
-def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list[Posts]:
+def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list[Type[Posts]]:
     single_page_posts_limit = config.posts_limit
     page_db = (page - 1) * config.posts_limit
 
@@ -196,7 +197,7 @@ def create_reply(db: Session, reply_create: schemas.ReplyCreate, user_name: str)
     return True
 
 
-def get_remarks_by_post_uuid(db: Session, post_uuid: str, page: int) -> list[Remarks]:
+def get_remarks_by_post_uuid(db: Session, post_uuid: str, page: int) -> list[Type[Remarks]]:
     remark_limit = config.remark_limit
     remark_db = (page - 1) * config.remark_limit
     return db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid) \
@@ -204,11 +205,11 @@ def get_remarks_by_post_uuid(db: Session, post_uuid: str, page: int) -> list[Rem
         .limit(remark_limit).offset(remark_db).all()
 
 
-def get_remark_by_remark_uuid(db: Session, remark_uuid: str) -> list[Remarks]:
+def get_remark_by_remark_uuid(db: Session, remark_uuid: str) -> Type[Remarks] | None:
     return db.query(models.Remarks).filter(models.Remarks.remark_uuid == remark_uuid).first()
 
 
-def get_replies_by_remark_uuid(db: Session, remark_uuid: str, page: int) -> list[Replies]:
+def get_replies_by_remark_uuid(db: Session, remark_uuid: str, page: int) -> list[Type[Replies]]:
     reply_limit = config.reply_limit
     remark_db = (page - 1) * config.reply_limit
     return db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid) \
@@ -216,7 +217,7 @@ def get_replies_by_remark_uuid(db: Session, remark_uuid: str, page: int) -> list
         .limit(reply_limit).offset(remark_db).all()
 
 
-def get_like_status_from_database(db: Session, post_uuid: str, user_name: str) -> Likes:
+def get_like_status_from_database(db: Session, post_uuid: str, user_name: str) -> Type[Likes] | None:
     return db.query(models.Likes).filter(models.Likes.post_uuid == post_uuid, models.Likes.user_name == user_name) \
         .first()
 
@@ -334,7 +335,7 @@ def get_comments_quantity(db: Session):
 
 # Functions below are only prepared for administrators.
 
-def get_all_users(db: Session) -> list[dict]:
+def get_all_users(db: Session) -> list[Type[User]]:
     """
     Query the list of all users.
     :param db: Session of the database.

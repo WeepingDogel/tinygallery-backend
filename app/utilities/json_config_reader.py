@@ -6,5 +6,3 @@ def read_admin_list(file_dir: str):
         admin_list = json.load(f)
 
         return admin_list
-
-

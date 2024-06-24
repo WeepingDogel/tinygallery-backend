@@ -1,5 +1,4 @@
 # Request Body
-from fastapi import UploadFile
 from typing import Union
 from pydantic import BaseModel
 
