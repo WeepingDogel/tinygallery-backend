@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code, excluding the specified files and directories
 COPY . .
-RUN rm -rf database static admin_list.json
+RUN rm -rf database static admin_list.json .venv
 
 # Add metadata labels
 LABEL maintainer="WeepingDogel <weepingdogel@gmail.com>"
