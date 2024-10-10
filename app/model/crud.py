@@ -7,9 +7,16 @@ from sqlalchemy.orm import Session
 
 from app.utilities.hash_tool import get_password_hash
 from . import models, schemas
-from .models import Posts, Remarks, Replies, Likes, User
+from .models import Posts, Remarks, Replies, Likes, User, Admin
 from .. import config
 from ..utilities import userdata_tool
+from datetime import datetime
+from ..utilities.image_tools import generate_default_avatar, generate_user_avatar  # Update this import
+import base64
+from io import BytesIO
+from PIL import Image
+from ..utilities import dir_tool
+from fastapi import UploadFile
 
 
 def create_user(db: Session, user: schemas.User):
@@ -18,11 +25,11 @@ def create_user(db: Session, user: schemas.User):
     :param user: The schemas of a user
     :return: The result of creating a user
     """
-    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    date = datetime.utcnow()
     user_uuid = str(uuid.uuid4())
     db_user = models.User(
         user_name=user.user_name,
-        password=user.password,
+        password=get_password_hash(user.password),
         email=user.email,
         date=date,
         users_uuid=user_uuid
@@ -30,11 +37,12 @@ def create_user(db: Session, user: schemas.User):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    generate_default_avatar(user_uuid)
     return db_user
 
 
 def create_admin(db: Session, user: dict, password_hashed: str):
-    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    date = datetime.utcnow()
     user_uuid = str(uuid.uuid4())
     db_admin = models.Admin(
         user_name=user['username'],
@@ -46,7 +54,7 @@ def create_admin(db: Session, user: dict, password_hashed: str):
     db.add(db_admin)
     db.commit()
     db.refresh(db_admin)
-
+    generate_default_avatar(user_uuid)
     return db_admin
 
 
@@ -76,7 +84,7 @@ def db_create_post(db: Session,
                    description: str,
                    post_uuid: str,
                    is_nsfw: bool):
-    date_db = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    date_db = datetime.utcnow()  # Use datetime.utcnow() instead of a string
     dots_db: int = 0
     share_num_db: int = 0
 
@@ -96,15 +104,11 @@ def db_create_post(db: Session,
     return True
 
 
-def get_posts_by_page(db: Session, page: int) -> list[Type[Posts]]:
-    post_limit = config.posts_limit
-    page_db = (page - 1) * config.posts_limit
-    return db.query(models.Posts) \
-        .order_by(desc(models.Posts.date)) \
-        .limit(post_limit).offset(page_db).all()
+def get_posts_by_page(db: Session, page: int):
+    return db.query(models.Posts).order_by(desc(models.Posts.date)).offset((page - 1) * config.posts_limit).limit(config.posts_limit).all()
 
 
-def get_single_post_by_uuid(db: Session, post_uuid: str) -> Type[Posts] | None:
+def get_single_post_by_uuid(db: Session, post_uuid: str):
     return db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
 
 
@@ -146,14 +150,8 @@ def update_post_by_uuid(db: Session,
     return True
 
 
-def get_all_posts_belong_to_user(db: Session, user_name: str, page: int) -> list[Type[Posts]]:
-    single_page_posts_limit = config.posts_limit
-    page_db = (page - 1) * config.posts_limit
-
-    return db.query(models.Posts). \
-        filter(models.Posts.user_name == user_name). \
-        order_by(desc(models.Posts.date)). \
-        limit(single_page_posts_limit).offset(page_db).all()
+def get_all_posts_belong_to_user(db: Session, user_name: str, page: int):
+    return db.query(models.Posts).filter(models.Posts.user_name == user_name).order_by(desc(models.Posts.date)).offset((page - 1) * config.posts_limit).limit(config.posts_limit).all()
 
 
 def create_remark(db: Session, remark_create: schemas.RemarkCreate, user_name: str):
@@ -345,7 +343,7 @@ def get_all_users(db: Session) -> list[Type[User]]:
     return db.query(models.User).all()
 
 
-def get_all_admins(db: Session) -> list:
+def get_all_admins(db: Session) -> list[Admin]:
     """
     Query the list of all administrators.
     :param db: Session of the database
@@ -470,3 +468,211 @@ def update_data_of_a_user(user_manage: schemas.UserManage, db: Session):
         db.commit()
 
     return True
+
+# Admin User Management
+
+def admin_get_all_users(db: Session):
+    users = db.query(models.User).all()
+    for user in users:
+        avatar_urls = dir_tool.get_avatar_file_url(user.users_uuid)
+        setattr(user, 'avatar', avatar_urls[0])  # Use the full-size avatar URL
+    return users
+
+def admin_create_user(db: Session, user: schemas.UserCreate):
+    hashed_password = get_password_hash(user.password)
+    user_uuid = str(uuid.uuid4())
+    db_user = models.User(
+        user_name=user.user_name,
+        password=hashed_password,
+        email=user.email,
+        date=datetime.utcnow(),
+        users_uuid=user_uuid
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    generate_default_avatar(user_uuid)
+    return db_user
+
+def admin_update_user(db: Session, user_uuid: str, user: schemas.UserUpdate):
+    db_user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if db_user:
+        update_data = user.dict(exclude_unset=True)
+        if 'password' in update_data:
+            update_data['password'] = get_password_hash(update_data['password'])
+        for key, value in update_data.items():
+            setattr(db_user, key, value)
+        db.commit()
+        db.refresh(db_user)
+        
+        # Add avatar URL to the user object
+        avatar_urls = dir_tool.get_avatar_file_url(user_uuid)
+        setattr(db_user, 'avatar', avatar_urls[0])  # Use the full-size avatar URL
+    return db_user
+
+def admin_delete_user(db: Session, user_uuid: str):
+    db_user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if db_user:
+        posts = db.query(models.Posts).filter(models.Posts.user_name == db_user.user_name).all()
+        for post in posts:
+            db.query(models.Remarks).filter(models.Remarks.post_uuid == post.post_uuid).delete(synchronize_session=False)
+            db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid.in_(
+                db.query(models.Remarks.remark_uuid).filter(models.Remarks.post_uuid == post.post_uuid)
+            )).delete(synchronize_session=False)
+            db.delete(post)
+        
+        db.query(models.Remarks).filter(models.Remarks.user_uuid == user_uuid).delete(synchronize_session=False)
+        db.query(models.Replies).filter(models.Replies.user_uuid == user_uuid).delete(synchronize_session=False)
+        db.query(models.Likes).filter(models.Likes.user_uuid == user_uuid).delete(synchronize_session=False)
+        
+        db.delete(db_user)
+        db.commit()
+        return True
+    return False
+
+def admin_get_user_by_uuid(db: Session, user_uuid: str):
+    user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if user:
+        user_dict = user.__dict__
+        avatar_urls = dir_tool.get_avatar_file_url(user_uuid)
+        user_dict['avatar'] = avatar_urls[0]  # Use the full-size avatar URL
+        return user_dict
+    return None
+
+# Admin Post Management
+
+def admin_get_all_posts(db: Session):
+    return db.query(models.Posts).all()
+
+def admin_create_post(db: Session, post: schemas.PostCreate, user_name: str):
+    db_post = models.Posts(
+        user_name=user_name,
+        post_title=post.post_title,
+        post_uuid=str(uuid.uuid4()),
+        description=post.description,
+        nsfw=post.nsfw,
+        date=datetime.utcnow(),
+        dots=0,
+        share_num=0
+    )
+    db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+    return db_post
+
+def admin_update_post(db: Session, post_uuid: str, post: schemas.PostUpdate):
+    db_post = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+    if db_post:
+        update_data = post.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_post, key, value)
+        db.commit()
+        db.refresh(db_post)
+        
+        # Add image_link to the response
+        post_dict = db_post.__dict__
+        post_dict['image_link'] = dir_tool.get_post_image_link(post_uuid)
+        return post_dict
+    return None
+
+def admin_delete_post(db: Session, post_uuid: str):
+    db_post = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+    if db_post:
+        db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid).delete(synchronize_session=False)
+        db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid.in_(
+            db.query(models.Remarks.remark_uuid).filter(models.Remarks.post_uuid == post_uuid)
+        )).delete(synchronize_session=False)
+        db.query(models.Likes).filter(models.Likes.post_uuid == post_uuid).delete(synchronize_session=False)
+        db.delete(db_post)
+        db.commit()
+        return True
+    return False
+
+# Admin Comment Management
+
+def admin_get_all_comments(db: Session):
+    return db.query(models.Remarks).all()
+
+def admin_create_comment(db: Session, comment: schemas.CommentCreate, user_name: str):
+    user = get_user_by_name(db, user_name)
+    if not user:
+        return None
+    db_comment = models.Remarks(
+        post_uuid=comment.post_uuid,
+        user_name=user_name,
+        user_uuid=user.users_uuid,
+        remark_uuid=str(uuid.uuid4()),
+        content=comment.content,
+        date=datetime.utcnow()
+    )
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def admin_update_comment(db: Session, comment_uuid: str, comment: schemas.CommentUpdate):
+    db_comment = db.query(models.Remarks).filter(models.Remarks.remark_uuid == comment_uuid).first()
+    if db_comment:
+        update_data = comment.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_comment, key, value)
+        db.commit()
+        db.refresh(db_comment)
+    return db_comment
+
+def admin_delete_comment(db: Session, remark_uuid: str):
+    db_comment = db.query(models.Remarks).filter(models.Remarks.remark_uuid == remark_uuid).first()
+    if db_comment:
+        db.query(models.Replies).filter(models.Replies.reply_to_remark_uuid == remark_uuid).delete(synchronize_session=False)
+        db.delete(db_comment)
+        db.commit()
+        return True
+    return False
+
+# Additional Admin Functions
+
+def admin_get_user_activity(db: Session, user_uuid: str) -> schemas.UserActivity:
+    user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if user:
+        user_posts = db.query(models.Posts).filter(models.Posts.user_name == user.user_name).count()
+        user_comments = db.query(models.Remarks).filter(models.Remarks.user_uuid == user_uuid).count()
+        return schemas.UserActivity(posts=user_posts, comments=user_comments)
+    return None
+
+def admin_get_post_statistics(db: Session, post_uuid: str) -> schemas.PostStatistics:
+    post = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+    if post:
+        comments_count = db.query(models.Remarks).filter(models.Remarks.post_uuid == post_uuid).count()
+        return schemas.PostStatistics(likes=post.dots, comments=comments_count, shares=post.share_num)
+    return None
+
+def admin_update_user_avatar(db: Session, user_uuid: str, avatar: UploadFile):
+    user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if not user:
+        return None
+    
+    contents = avatar.file.read()
+    image = Image.open(BytesIO(contents))
+    
+    generate_user_avatar(user_uuid, image)
+    
+    avatar_url = dir_tool.get_avatar_file_url(user_uuid)[0]
+    setattr(user, 'avatar', avatar_url)
+    
+    return user
+
+# Add this new function
+
+def admin_get_post_by_uuid(db: Session, post_uuid: str):
+    post = db.query(models.Posts).filter(models.Posts.post_uuid == post_uuid).first()
+    if post:
+        post_dict = post.__dict__
+        post_dict['image_link'] = dir_tool.get_post_image_link(post_uuid)
+        return post_dict
+    return None
+
+def admin_get_comment_by_uuid(db: Session, comment_uuid: str):
+    comment = db.query(models.Remarks).filter(models.Remarks.remark_uuid == comment_uuid).first()
+    if comment:
+        return comment
+    return None

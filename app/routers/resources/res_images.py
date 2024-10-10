@@ -6,6 +6,8 @@ from ...model import crud
 from ...utilities import dir_tool
 from ...utilities.userdata_tool import get_user_uuid_by_name, get_admin_uuid_by_name
 from ... import config
+from datetime import datetime
+import time
 
 image_resources_api = APIRouter(
     prefix="/resources",
@@ -40,7 +42,7 @@ async def get_posts_as_json(page: int, db: Session = Depends(get_db)):
             "user_name": x.user_name,
             "post_title": x.post_title,
             "dots": x.dots,
-            "date": x.date[0:16],
+            "date": x.date.strftime("%Y-%m-%d %H:%M:%S"),  # Format the datetime object
             "cover_url": dir_tool.get_cover_file_url(x.post_uuid),
             "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=admin_uuid if admin_uuid else user_uuid)[1]
         }
@@ -66,7 +68,7 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
         "user_name": post_db.user_name,
         "post_title": post_db.post_title,
         "dots": post_db.dots,
-        "date": post_db.date[0:16],
+        "date": post_db.date.strftime("%Y-%m-%d %H:%M:%S"),  # Format the datetime object
         "files_url": dir_tool.get_files_url_as_dict(post_db.post_uuid)
     }
 
@@ -75,7 +77,14 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
 
 @image_resources_api.get("/posts/getAllPostsBelongToUser/{page}")
 def get_all_posts_belong_to_user(page: int, user_name: str, db: Session = Depends(get_db)):
-    return crud.get_all_posts_belong_to_user(db=db, user_name=user_name, page=page)
+    posts = crud.get_all_posts_belong_to_user(db=db, user_name=user_name, page=page)
+    return [
+        {
+            **post.__dict__,
+            "date": post.date.strftime("%Y-%m-%d %H:%M") if isinstance(post.date, datetime) else post.date
+        }
+        for post in posts
+    ]
 
 
 @image_resources_api.get("/avatar/{user_name_for_get_avatar}")
@@ -88,9 +97,14 @@ def get_avatar_by_user_name(user_name_for_get_avatar: str, db: Session = Depends
     avatar_200px_dir = Path(avatar_dir.joinpath(user_uuid + '/200'))
     avatar_40px_dir = Path(avatar_dir.joinpath(user_uuid + '/40'))
     avatar_full_image_dir = Path(avatar_dir.joinpath(user_uuid))
-    avatar_200px = resource_server + "/" + str(list(avatar_200px_dir.glob('*.*'))[0])
-    avatar_40px = resource_server + "/" + str(list(avatar_40px_dir.glob('*.*'))[0])
-    avatar_full_image = resource_server + "/" + str(list(avatar_full_image_dir.glob('*.*'))[0])
+    
+    # Add a timestamp to force cache refresh
+    timestamp = int(time.time())
+    
+    avatar_200px = f"{resource_server}/{str(list(avatar_200px_dir.glob('*.*'))[0])}?t={timestamp}"
+    avatar_40px = f"{resource_server}/{str(list(avatar_40px_dir.glob('*.*'))[0])}?t={timestamp}"
+    avatar_full_image = f"{resource_server}/{str(list(avatar_full_image_dir.glob('*.*'))[0])}?t={timestamp}"
+    
     return {
         'status': "success",
         'avatar_200px': avatar_200px,

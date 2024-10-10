@@ -241,3 +241,21 @@ def compress_cover(
         return False
 
     return True
+
+
+def get_post_image_link(post_uuid: str) -> str:
+    post_dir_object = Path(config.POST_DIR).joinpath(post_uuid)
+    cover_path = post_dir_object.joinpath("cover")
+    
+    # Check if there's a cover image
+    cover_files = list(cover_path.glob("*.*"))
+    if cover_files:
+        return config.POSTS_RESOURCE_SERVER_URL + str(cover_files[0].relative_to(config.POST_DIR))
+    
+    # If no cover, get the first image in the post directory
+    image_files = list(post_dir_object.glob("*.*"))
+    if image_files:
+        return config.POSTS_RESOURCE_SERVER_URL + str(image_files[0].relative_to(config.POST_DIR))
+    
+    # If no images found, return an empty string or a default image URL
+    return ""

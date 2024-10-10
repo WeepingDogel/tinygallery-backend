@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
 from app.dependencies.db import Base
+from datetime import datetime
 
 
 class User(Base):
@@ -17,12 +18,12 @@ class Posts(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_name = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
     post_title = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    post_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL', unique=True)
     nsfw = Column(Boolean)
     description = Column(String)
-    dots = Column(Integer)
-    share_num = Column(Integer)
-    date = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
-    post_uuid = Column(String, nullable=False, sqlite_on_conflict_not_null='FAIL')
+    dots = Column(Integer, default=0)
+    share_num = Column(Integer, default=0)
+    date = Column(DateTime, default=datetime.utcnow)
 
 
 class Remarks(Base):
