@@ -6,13 +6,15 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile  # Importing necessary modules
 from sqlalchemy.orm import Session
 
-from ...model.crud import get_posts_quantity, get_user_quantity, get_comments_quantity
+from ...model.crud import get_posts_quantity, get_user_quantity, get_comments_quantity, update_user_password, get_user_by_name
 from ... import config
 from ...dependencies.db import get_db
 from ...dependencies.oauth2scheme import oauth2Scheme
 from ...utilities.dir_tool import save_user_avatar
 from ...utilities.token_tools import get_user_name_by_token
 from ...utilities.userdata_tool import auth_user_by_name
+from ...utilities.hash_tool import verify_password
+from ...model.schemas import ChangePasswordRequest  # Import the new schema
 
 # Creating a new APIRouter object with a prefix, tags, dependencies and responses defined.
 userdata_router = APIRouter(
@@ -109,3 +111,28 @@ def get_comments_num(db: Session = Depends(get_db)):
 def get_server_timezone():
     tz = str(get_localzone())
     return tz
+
+# Endpoint for changing user password
+@userdata_router.post("/change-password")
+def change_password(request: ChangePasswordRequest, db: Session = Depends(get_db), token: str = Depends(oauth2Scheme)):
+    user_name = get_user_name_by_token(token=token)
+    if not user_name:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+    user = get_user_by_name(db, user_name)
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    # Validate the previous password using the updated verify_password function
+    if not verify_password(request.previous_password, user.password):
+        raise HTTPException(status_code=400, detail="Previous password is incorrect")
+
+    # Check if the new password and confirm password match
+    if request.new_password != request.confirm_password:
+        raise HTTPException(status_code=400, detail="New password and confirmation do not match")
+
+    # Update the user's password
+    if not update_user_password(db, user.users_uuid, request.new_password):
+        raise HTTPException(status_code=500, detail="Failed to update password")  # Handle failure case
+
+    return {"detail": "Password updated successfully"}

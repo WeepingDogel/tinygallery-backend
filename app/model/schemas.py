@@ -199,3 +199,11 @@ class AvatarUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+        
+class ChangePasswordRequest(BaseModel):
+    previous_password: str
+    new_password: str
+    confirm_password: str  # Add this line
+
+    class Config:
+        from_attributes = True  # Add this line if needed for ORM compatibility

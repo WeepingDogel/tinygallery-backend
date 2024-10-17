@@ -676,3 +676,11 @@ def admin_get_comment_by_uuid(db: Session, comment_uuid: str):
     if comment:
         return comment
     return None
+
+def update_user_password(db: Session, user_uuid: str, new_password: str) -> bool:
+    user = db.query(models.User).filter(models.User.users_uuid == user_uuid).first()
+    if user:
+        user.password = get_password_hash(new_password)  # Hash the new password
+        db.commit()
+        return True
+    return False

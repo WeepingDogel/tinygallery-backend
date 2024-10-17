@@ -89,21 +89,31 @@ def get_all_posts_belong_to_user(page: int, user_name: str, db: Session = Depend
 
 @image_resources_api.get("/avatar/{user_name_for_get_avatar}")
 def get_avatar_by_user_name(user_name_for_get_avatar: str, db: Session = Depends(get_db)):
-    user_uuid = get_user_uuid_by_name(user_name=user_name_for_get_avatar, db=db) if get_user_uuid_by_name(
-        user_name=user_name_for_get_avatar, db=db) else get_admin_uuid_by_name(
-        user_name=user_name_for_get_avatar, db=db)
+    user_uuid = get_user_uuid_by_name(user_name=user_name_for_get_avatar, db=db) or get_admin_uuid_by_name(user_name=user_name_for_get_avatar, db=db)
+    
+    if not user_uuid:
+        raise HTTPException(status_code=404, detail="User not found")
+
     resource_server = config.AVATARS_RESOURCE_SERVER_URL.split('/static/')[0]
     avatar_dir = Path(config.AVATAR_DIR)
-    avatar_200px_dir = Path(avatar_dir.joinpath(user_uuid + '/200'))
-    avatar_40px_dir = Path(avatar_dir.joinpath(user_uuid + '/40'))
-    avatar_full_image_dir = Path(avatar_dir.joinpath(user_uuid))
+    avatar_200px_dir = avatar_dir / user_uuid / '200'
+    avatar_40px_dir = avatar_dir / user_uuid / '40'
+    avatar_full_image_dir = avatar_dir / user_uuid
     
     # Add a timestamp to force cache refresh
     timestamp = int(time.time())
     
-    avatar_200px = f"{resource_server}/{str(list(avatar_200px_dir.glob('*.*'))[0])}?t={timestamp}"
-    avatar_40px = f"{resource_server}/{str(list(avatar_40px_dir.glob('*.*'))[0])}?t={timestamp}"
-    avatar_full_image = f"{resource_server}/{str(list(avatar_full_image_dir.glob('*.*'))[0])}?t={timestamp}"
+    # Function to get avatar URLs
+    def get_avatar_url(avatar_dir: Path, size: str):
+        avatar_files = list(avatar_dir.glob('*.*'))
+        if not avatar_files:
+            raise HTTPException(status_code=404, detail=f"{size} avatar not found")
+        return f"{resource_server}/{str(avatar_files[0])}?t={timestamp}"
+
+    # Get avatar URLs
+    avatar_200px = get_avatar_url(avatar_200px_dir, "200px")
+    avatar_40px = get_avatar_url(avatar_40px_dir, "40px")
+    avatar_full_image = get_avatar_url(avatar_full_image_dir, "full image")
     
     return {
         'status': "success",

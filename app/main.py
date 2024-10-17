@@ -44,11 +44,13 @@ This project is under **development**, only
 * /post/delete,
 * /posts/update,
 * /resources/posts/,
-* /resources/posts/single
-* /userdata/get/username
+* /resources/posts/single,
+* /userdata/get/username,
+* /userdata/change-password,
+* /resources/avatar/{user_name_for_get_avatar},
+* /resources/profile/background/{user_name_for_get_background}
 
-
-interface are available.
+interfaces are available.
 """
 
 # Create FastAPI app instance with tags and description
