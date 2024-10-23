@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code, excluding the specified files and directories
 COPY . .
-RUN rm -rf database static admin_list.json .venv
-
+RUN rm -rf database admin_list.json .venv
+COPY ./static/avatars/default/default_avatar.jpg ./static/avatars/default/default_avatar.jpg
 # Add metadata labels
 LABEL maintainer="WeepingDogel <weepingdogel@gmail.com>"
 LABEL version="1.0"
@@ -23,7 +23,7 @@ LABEL description="Docker image for TinyGallery-Backend application"
 EXPOSE 8000
 
 # Define environment variable
-ENV NAME TinyGallery-Backend
+ENV NAME=TinyGallery-Backend
 
 # Ensure run.sh is executable
 RUN chmod +x run.sh
