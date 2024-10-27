@@ -1,103 +1,80 @@
-# TinyGallery Backend (FastAPI)
+# TinyGallery Backend
 
-## Introduction
+TinyGallery Backend is a RESTful API built using FastAPI that powers the TinyGallery Vue Edition. It provides comprehensive functionality for managing images, posts, users, and more.
 
-The TinyGallery Backend is a RESTful API built using FastAPI that powers the TinyGallery Vue Edition. It provides basic CRUD functionality for managing images and categories.
+## Project Structure
 
-## API Documentation
+- `app/`: Contains the main application code.
+- `docs/`: Contains documentation for the project.
 
-The API endpoints are documented using Swagger UI. Once the backend server is up and running, you can access the Swagger UI documentation by going to [http://localhost:8000/docs](http://localhost:8000/docs) in your web browser.
+## Features
 
-## Requirements
+- User authentication and authorization
+- Image upload and management
+- Post creation and management
+- Comment system
+- Like functionality
+- User profile management
+- Admin panel for user and content management
+- Avatar and background image customization
 
-* Python 3.6 or higher
-* pip
-* virtualenv
+## Tech Stack
+
+- Python 3.6+
+- FastAPI
+- SQLAlchemy (with SQLite)
+- Pydantic for data validation
+- JWT for authentication
+- Pillow for image processing
 
 ## Getting Started
 
-Follow these steps to get started with the TinyGallery Backend:
+For detailed setup instructions, please refer to our [Get Started Guide](docs/Get-Started.md).
 
-### Clone the repository:
+Quick start:
 
-```shell
+1. Clone the repository
+2. Set up a virtual environment
+3. Install dependencies
+4. Configure environment variables
+5. Initialize the database
+6. Run the development server
+
+```bash
 git clone https://github.com/WeepingDogel/tinygallery-backend.git
-```
-
-### Change into the project directory:
-
-```shell
 cd tinygallery-backend
-```
-
-### Create a new virtual environment:
-
-```shell
-virtualenv venv
-```
-
-### Activate the virtual environment:
-
-```shell
+python -m venv venv
 source venv/bin/activate
-```
-
-### Install the required dependencies:
-
-```shell
 pip install -r requirements.txt
+# Configure .env file
+python -c "from app.model import models; from app.dependencies.db import engine; models.Base.metadata.create_all(bind=engine)"
+uvicorn app.main:app --reload
 ```
 
-### Start the backend server:
+## API Documentation
 
-```shell
-./debug.sh
-```
+Once the server is running, you can access the Swagger UI documentation at `http://localhost:8000/docs`.
 
-Alternatively, if you want to run the server in a production environment:
-
-```shell
-./run.sh
-```
-
-The backend server should now be running at [http://localhost:8000](http://localhost:8000).
-
-## Docker Deployment
-
-To deploy the backend using Docker, follow these steps:
-
-### Build the Docker image:
-
-```shell
-docker build -t your_registry_url/tinygallery-backend:latest .
-```
-
-### Push the Docker image to your registry:
-
-```shell
-docker push your_registry_url/tinygallery-backend:latest
-```
-
-### Run the Docker container:
-
-```shell
-docker run -p 8000:8000 -v "./admin_list.json:/app/admin_list.json" -d your_registry_url/tinygallery-backend:latest
-```
-
-## Configuration
-
-The configuration for the backend is stored in the `.env` file. The default values should be sufficient for local development, but you may need to modify them if you're deploying the backend to a production environment.
+For a more detailed API reference, see our [API Documentation](docs/API-References.md).
 
 ## Deployment
 
-To deploy the backend, you can follow these steps:
+For information on deploying TinyGallery Backend to a production environment, please refer to our [Deployment Guide](docs/Deployment.md).
 
-* Modify the values in the `.env` file to match your deployment environment.
-* Install the required dependencies by running `pip install -r requirements.txt`.
-* Launch the backend server using a process manager like `systemd`, `supervisor`, or `pm2`.
+## Contributing
 
-## Conclusion
+We welcome contributions to TinyGallery Backend! Please see our [Contributing Guide](CONTRIBUTING.md) for more details on how to get started.
 
-That's it! You should now have a working instance of the TinyGallery Backend up and running. Use this README as a guide to get started with running and deploying the backend.
+## License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Support
+
+If you encounter any problems or have any questions, please open an issue on our [GitHub Issues](https://github.com/WeepingDogel/tinygallery-backend/issues) page.
+
+## Acknowledgements
+
+- [FastAPI](https://fastapi.tiangolo.com/) for the awesome web framework
+- [SQLAlchemy](https://www.sqlalchemy.org/) for the ORM
+- All our contributors and users!
