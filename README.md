@@ -5,7 +5,12 @@ TinyGallery Backend is a RESTful API built using FastAPI that powers the TinyGal
 ## Project Structure
 
 - `app/`: Contains the main application code.
+  - `dependencies/`: Dependency injection and database setup.
+  - `model/`: Database models and schemas.
+  - `routers/`: API route handlers.
+  - `utilities/`: Utility functions and tools.
 - `docs/`: Contains documentation for the project.
+- `tests/`: Contains unit and integration tests.
 
 ## Features
 
@@ -44,7 +49,7 @@ Quick start:
 git clone https://github.com/WeepingDogel/tinygallery-backend.git
 cd tinygallery-backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 pip install -r requirements.txt
 # Configure .env file
 python -c "from app.model import models; from app.dependencies.db import engine; models.Base.metadata.create_all(bind=engine)"
@@ -61,9 +66,17 @@ For a more detailed API reference, see our [API Documentation](docs/API-Referenc
 
 For information on deploying TinyGallery Backend to a production environment, please refer to our [Deployment Guide](docs/Deployment.md).
 
+## CI/CD Pipeline
+
+We use a comprehensive CI/CD pipeline to ensure code quality and automate the deployment process. For more details, see our [Pipeline Documentation](docs/pipeline.md).
+
 ## Contributing
 
 We welcome contributions to TinyGallery Backend! Please see our [Contributing Guide](CONTRIBUTING.md) for more details on how to get started.
+
+## Security
+
+For information about our security policy and how to report security vulnerabilities, please see our [Security Policy](SECURITY.md).
 
 ## License
 
@@ -77,4 +90,5 @@ If you encounter any problems or have any questions, please open an issue on our
 
 - [FastAPI](https://fastapi.tiangolo.com/) for the awesome web framework
 - [SQLAlchemy](https://www.sqlalchemy.org/) for the ORM
+- [Pillow](https://python-pillow.org/) for image processing
 - All our contributors and users!
