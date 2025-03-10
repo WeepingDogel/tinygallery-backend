@@ -207,3 +207,14 @@ class ChangePasswordRequest(BaseModel):
 
     class Config:
         from_attributes = True  # Add this line if needed for ORM compatibility
+
+
+class UserInDB(BaseModel):
+    user_name: str
+    password: str  # 这里存储已经哈希过的密码
+    email: str
+    users_uuid: str | None = None
+    date: datetime | None = None
+
+    class Config:
+        from_attributes = True

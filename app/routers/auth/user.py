@@ -9,16 +9,16 @@ from passlib.context import CryptContext
 from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ...utilities.hash_tool import verify_password, get_password_hash
+from app.utilities.hash_tool import verify_password, get_password_hash
 # Importing modules from application
-from ...utilities.image_tools import generate_default_avatar
-from ...utilities.userdata_tool import get_user_uuid_by_name
-from ...model import schemas
-from ...model import crud
+from app.utilities.image_tools import generate_default_avatar
+from app.utilities.userdata_tool import get_user_uuid_by_name
+from app.model import schemas
+from app.model import crud
 from app.dependencies.db import get_db
-from ... import config
-from ...dependencies.oauth2scheme import oauth2Scheme
-from ...utilities.token_tools import get_user_name_by_token, create_access_token, authenticate_user, authenticate_admin
+from app import config
+from app.dependencies.oauth2scheme import oauth2Scheme
+from app.utilities.token_tools import get_user_name_by_token, create_access_token, authenticate_user, authenticate_admin
 
 # Defining router
 userAuthRouter = APIRouter(
@@ -36,59 +36,107 @@ userAuthRouter = APIRouter(
 # Route for user registration
 @userAuthRouter.post("/register")
 def create_user(user: schemas.User, db: Session = Depends(get_db)):
+    # 检查密码长度
+    if len(user.password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 6 characters long"
+        )
+    
     db_user = crud.get_user_by_name(db, user_name=user.user_name)
     db_admin = crud.get_admin_by_name(db, user_name=user.user_name)
-    # Check if username, password and email are empty or not
+    
+    # 检查用户名长度
+    if len(user.user_name) < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Username must be at least 3 characters long"
+        )
+
     if user.user_name == "" or user.password == "" or user.email == "":
         raise HTTPException(
-            status_code=400, detail="Username, password and email can't be empty.")
+            status_code=400, 
+            detail="Username, password and email can't be empty."
+        )
 
-    # Check if the username already exists or not
     if db_user or db_admin:
         raise HTTPException(
-            status_code=400, detail="Username has already existed!")
+            status_code=400, 
+            detail="Username has already existed!"
+        )
 
-    # Encrypt the password and create user
-    user.password = get_password_hash(user.password)
-    crud.create_user(db=db, user=user)
-
-    # Generate the default avatar for the user and return a success message.
-    generate_default_avatar(user_uuid=get_user_uuid_by_name(user_name=user.user_name, db=db))
-    return {"status": "success"}
+    try:
+        # 对原始密码进行一次哈希
+        user.password = get_password_hash(user.password)
+        # 直接创建用户，不要再次哈希密码
+        db_user = schemas.UserInDB(
+            user_name=user.user_name,
+            password=user.password,  # 已经哈希过的密码
+            email=user.email
+        )
+        crud.create_user(db=db, user=db_user)
+        generate_default_avatar(user_uuid=get_user_uuid_by_name(user_name=user.user_name, db=db))
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create user: {str(e)}"
+        )
 
 
 # Route for user login
 @userAuthRouter.post("/token")
 async def user_login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user_authentication = authenticate_user(
-        db, form_data.username, form_data.password)
-
-    admin_authentication = authenticate_admin(
-        db, form_data.username, form_data.password)
-
-    # Raise error if authentication fails
-    if not user_authentication and not admin_authentication:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password.",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
     try:
-        # Create access token
-        access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": form_data.username},
-            expires_delta=access_token_expires)
-    except JWTError:
+        print(f"Login attempt for user: {form_data.username}")
+        
+        # 检查用户是否存在
+        db_user = crud.get_user_by_name(db, user_name=form_data.username)
+        if db_user:
+            is_valid = verify_password(form_data.password, db_user.password)
+            if is_valid:
+                access_token = create_access_token(
+                    data={"sub": form_data.username, "type": "user"},
+                    expires_delta=timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+                )
+                print(f"Login successful for user: {form_data.username}")
+                return {
+                    "access_token": access_token,
+                    "token_type": "bearer",
+                    "user_type": "user"
+                }
+            print(f"Password verification failed for user: {form_data.username}")
+        
+        # 检查管理员
+        db_admin = crud.get_admin_by_name(db, user_name=form_data.username)
+        if db_admin:
+            is_valid = verify_password(form_data.password, db_admin.password)
+            if is_valid:
+                access_token = create_access_token(
+                    data={"sub": form_data.username, "type": "admin"},
+                    expires_delta=timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+                )
+                print(f"Login successful for admin: {form_data.username}")
+                return {
+                    "access_token": access_token,
+                    "token_type": "bearer",
+                    "user_type": "admin"
+                }
+            print(f"Password verification failed for admin: {form_data.username}")
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cannot create token.",
+            detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    # Return access token
-    return {"access_token": access_token, "token_type": "bearer"}
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
 # # Route to update user data by username
 # @userAuthRouter.put("/update/userdata/{user_name_for_update_data}")
