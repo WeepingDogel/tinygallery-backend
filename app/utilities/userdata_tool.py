@@ -1,7 +1,7 @@
 from fastapi import HTTPException
-from ..utilities import token_tools as token_tool
-from ..model import crud
 from sqlalchemy.orm import Session
+from app.utilities import token_tools as token_tool
+from app.model import crud
 
 
 def auth_user_by_name(db: Session, token: str) -> str:

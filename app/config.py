@@ -3,15 +3,24 @@ import secrets
 
 # Authentication
 secret_file = Path(".").joinpath("secret.txt")
-with open(secret_file, "r") as c:
-    secret_key_from_file = c.read()
-    if secret_key_from_file == "":
-        print("Secret error")
-        exit()
-    else:
+try:
+    with open(secret_file, "r") as c:
+        secret_key_from_file = c.read().strip()  # 添加 strip() 去除可能的空白字符
+        if not secret_key_from_file:
+            # 如果文件为空，生成新的密钥
+            secret_key_from_file = secrets.token_hex(32)
+            with open(secret_file, "w") as f:
+                f.write(secret_key_from_file)
         SECRET_KEY = secret_key_from_file
+except FileNotFoundError:
+    # 如果文件不存在，创建新文件并生成密钥
+    secret_key_from_file = secrets.token_hex(32)
+    with open(secret_file, "w") as f:
+        f.write(secret_key_from_file)
+    SECRET_KEY = secret_key_from_file
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 增加到60分钟
 
 # DATABASE
 DATABASE_URL = "sqlite:///./database/database.sqlite"

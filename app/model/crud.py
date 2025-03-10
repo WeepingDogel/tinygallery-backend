@@ -19,25 +19,19 @@ from ..utilities import dir_tool
 from fastapi import UploadFile
 
 
-def create_user(db: Session, user: schemas.User):
-    """
-    :param db: The session of the database.
-    :param user: The schemas of a user
-    :return: The result of creating a user
-    """
-    date = datetime.utcnow()
+def create_user(db: Session, user: schemas.UserInDB):
     user_uuid = str(uuid.uuid4())
+    current_date = datetime.utcnow()
     db_user = models.User(
         user_name=user.user_name,
-        password=get_password_hash(user.password),
+        password=user.password,
         email=user.email,
-        date=date,
-        users_uuid=user_uuid
+        users_uuid=user_uuid,
+        date=current_date
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    generate_default_avatar(user_uuid)
     return db_user
 
 

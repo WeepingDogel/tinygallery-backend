@@ -59,6 +59,10 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
         raise HTTPException(
             status_code=500, detail="The corresponding post does not exist.")
 
+    # Get user UUID for avatar
+    user_uuid = get_user_uuid_by_name(user_name=post_db.user_name, db=db)
+    admin_uuid = get_admin_uuid_by_name(user_name=post_db.user_name, db=db)
+    
     temp_dict = {
         "id": post_db.id,
         "description": post_db.description,
@@ -68,8 +72,9 @@ def get_single_post_images_by_uuid(post_uuid: str, db: Session = Depends(get_db)
         "user_name": post_db.user_name,
         "post_title": post_db.post_title,
         "dots": post_db.dots,
-        "date": post_db.date.strftime("%Y-%m-%d %H:%M:%S"),  # Format the datetime object
-        "files_url": dir_tool.get_files_url_as_dict(post_db.post_uuid)
+        "date": post_db.date.strftime("%Y-%m-%d %H:%M:%S"),
+        "files_url": dir_tool.get_files_url_as_dict(post_db.post_uuid),
+        "avatar": dir_tool.get_avatar_file_url(dir_user_uuid=admin_uuid if admin_uuid else user_uuid)[1]  # 使用40px的头像
     }
 
     return temp_dict
@@ -81,7 +86,9 @@ def get_all_posts_belong_to_user(page: int, user_name: str, db: Session = Depend
     return [
         {
             **post.__dict__,
-            "date": post.date.strftime("%Y-%m-%d %H:%M") if isinstance(post.date, datetime) else post.date
+            "date": post.date.strftime("%Y-%m-%d %H:%M") if isinstance(post.date, datetime) else post.date,
+            "cover_url": dir_tool.get_cover_file_url(post.post_uuid),
+            "image_url": dir_tool.get_files_url_as_dict(post.post_uuid)
         }
         for post in posts
     ]

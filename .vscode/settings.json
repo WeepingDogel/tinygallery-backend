@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:TinyGallery_Backend}/database/database.sqlite",
+            "name": "tinygallery"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
